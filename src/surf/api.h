@@ -24,7 +24,7 @@ constexpr auto SURF_MAX_TRACK = EZoneTrack::TRACKS_SIZE;
 constexpr auto SURF_MAX_STAGE = 64; // surf_classics3 is crazy
 
 constexpr auto SURF_REPLAY_FORMAT = "{CS2SURF-CN-REPLAY}";
-constexpr auto SURF_REPLAY_VERSION = 0x01;
+constexpr auto SURF_REPLAY_VERSION = 1;
 constexpr auto SURF_REPLAY_RESIZE_THRESHOLD = 2;
 
 class CSurfForward : public CBaseForward<CSurfForward> {

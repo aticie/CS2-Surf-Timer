@@ -36,9 +36,9 @@ void CSurfBotReplayService::DoPlayback(CCSPlayerPawn* pBotPawn, CInButtonState& 
 	MEM::CALL::SnapViewAngles(pBotPawn, frame.ang);
 
 	auto botFlags = pBotPawn->m_fFlags();
-	pBotPawn->m_fFlags(botFlags ^ frame.flags);
+	pBotPawn->m_fFlags(botFlags | frame.flags);
 
-	buttons = frame.buttons;
+	buttons.down = frame.buttons;
 	pBotPawn->SetMoveType(frame.mt);
 
 	const Vector& vecCurrentPos = pBotPawn->GetAbsOrigin();

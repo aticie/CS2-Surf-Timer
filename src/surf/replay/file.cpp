@@ -80,7 +80,11 @@ void CSurfReplayPlugin::AsyncWriteReplayFile(const replay_run_info_t& info, cons
 
 		for (size_t i = 0; i < info.framelength; i++) {
 			auto& frame = vFrames.at(i);
-			file.write(reinterpret_cast<const char*>(&frame), sizeof(frame));
+			file.write(reinterpret_cast<const char*>(&frame.ang), sizeof(Vector2D));
+			file.write(reinterpret_cast<const char*>(&frame.pos), sizeof(frame.pos));
+			file.write(reinterpret_cast<const char*>(&frame.buttons), sizeof(frame.buttons));
+			file.write(reinterpret_cast<const char*>(&frame.flags), sizeof(frame.flags));
+			file.write(reinterpret_cast<const char*>(&frame.mt), sizeof(frame.mt));
 		}
 
 		file.write(REPLAY_ARRAY_TAIL, std::strlen(REPLAY_ARRAY_TAIL));
@@ -113,7 +117,13 @@ bool CSurfReplayPlugin::ReadReplayFile(const std::string_view path, ReplayArray_
 
 	for (size_t i = 0; i < iFrameLen; i++) {
 		replay_frame_data_t frame;
-		file.read(reinterpret_cast<char*>(&frame), sizeof(frame));
+		frame.ang.z = 0;
+		file.read(reinterpret_cast<char*>(&frame.ang), sizeof(Vector2D));
+		file.read(reinterpret_cast<char*>(&frame.pos), sizeof(frame.pos));
+		file.read(reinterpret_cast<char*>(&frame.buttons), sizeof(frame.buttons));
+		file.read(reinterpret_cast<char*>(&frame.flags), sizeof(frame.flags));
+		file.read(reinterpret_cast<char*>(&frame.mt), sizeof(frame.mt));
+
 		out.emplace_back(frame);
 	}
 
