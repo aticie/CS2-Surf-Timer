@@ -6,6 +6,52 @@
 constexpr auto REPLAY_ARRAY_HEAD = "===ARRAY_HEAD===";
 constexpr auto REPLAY_ARRAY_TAIL = "===ARRAY_TAIL===";
 
+struct replay_compress_button_t {
+	u8 attack: 1;
+	u8 jump: 1;
+	u8 duck: 1;
+	u8 use: 1;
+	u8 attack2: 1;
+	u8 reload: 1;
+	u8 speed: 1;
+	u8 inspect: 1;
+
+	replay_compress_button_t() = default;
+
+	replay_compress_button_t(u64 button) {
+		Compress(button);
+	}
+
+	// clang-format off
+
+	void Compress(u64 button) {
+		if (button & IN_ATTACK) attack = true;
+		if (button & IN_JUMP) jump = true;
+		if (button & IN_DUCK) duck = true;
+		if (button & IN_USE) use = true;
+		if (button & IN_ATTACK2) attack2 = true;
+		if (button & IN_RELOAD) reload = true;
+		if (button & IN_SPEED) speed = true;
+		if (button & IN_LOOK_AT_WEAPON) inspect = true;
+	}
+
+	u64 Decompress() const {
+		u64 button = {};
+		if (attack) button |= IN_ATTACK;
+		if (jump) button |= IN_JUMP;
+		if (duck) button |= IN_DUCK;
+		if (use) button |= IN_USE;
+		if (attack2) button |= IN_ATTACK2;
+		if (reload) button |= IN_RELOAD;
+		if (speed) button |= IN_SPEED;
+		if (inspect) button |= IN_LOOK_AT_WEAPON;
+
+		return button;
+	}
+
+	// clang-format on
+};
+
 static void ReadStreamString(std::ifstream& file, std::string& outStr) {
 	uint32_t len = 0;
 	file.read(reinterpret_cast<char*>(&len), sizeof(len));
@@ -80,11 +126,14 @@ void CSurfReplayPlugin::AsyncWriteReplayFile(const replay_run_info_t& info, cons
 
 		for (size_t i = 0; i < info.framelength; i++) {
 			auto& frame = vFrames.at(i);
+
 			file.write(reinterpret_cast<const char*>(&frame.ang), sizeof(Vector2D));
 			file.write(reinterpret_cast<const char*>(&frame.pos), sizeof(frame.pos));
-			file.write(reinterpret_cast<const char*>(&frame.buttons), sizeof(frame.buttons));
 			file.write(reinterpret_cast<const char*>(&frame.flags), sizeof(frame.flags));
 			file.write(reinterpret_cast<const char*>(&frame.mt), sizeof(frame.mt));
+
+			replay_compress_button_t compressed_button(frame.buttons);
+			file.write(reinterpret_cast<const char*>(&compressed_button), sizeof(compressed_button));
 		}
 
 		file.write(REPLAY_ARRAY_TAIL, std::strlen(REPLAY_ARRAY_TAIL));
@@ -117,12 +166,16 @@ bool CSurfReplayPlugin::ReadReplayFile(const std::string_view path, ReplayArray_
 
 	for (size_t i = 0; i < iFrameLen; i++) {
 		replay_frame_data_t frame;
+
 		frame.ang.z = 0;
 		file.read(reinterpret_cast<char*>(&frame.ang), sizeof(Vector2D));
 		file.read(reinterpret_cast<char*>(&frame.pos), sizeof(frame.pos));
-		file.read(reinterpret_cast<char*>(&frame.buttons), sizeof(frame.buttons));
 		file.read(reinterpret_cast<char*>(&frame.flags), sizeof(frame.flags));
 		file.read(reinterpret_cast<char*>(&frame.mt), sizeof(frame.mt));
+
+		replay_compress_button_t compressed_button {};
+		file.read(reinterpret_cast<char*>(&compressed_button), sizeof(compressed_button));
+		frame.buttons = compressed_button.Decompress();
 
 		out.emplace_back(frame);
 	}

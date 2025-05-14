@@ -93,9 +93,9 @@ struct hudsettings_t {
 struct replay_frame_data_t {
 	QAngle ang;
 	Vector pos;
-	u64 buttons;
 	uint32 flags;
 	MoveType_t mt;
+	u64 buttons;
 };
 
 // valve may update InputBitMask_t and break these bits
