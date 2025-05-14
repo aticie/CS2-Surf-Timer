@@ -26,6 +26,12 @@ EVENT_CALLBACK_POST(OnPlayerSpawm) {
 		}
 
 		pPawn->SetMoveType(MOVETYPE_NOCLIP);
+
+		CSurfBot* pBot = SURF::GetBotManager()->ToPlayer(pPawn);
+		if (pBot) {
+			pBot->m_pReplayService->m_bReplayBot = true;
+			pBot->m_pReplayService->m_iCurrentTrack = Track_Main;
+		}
 	});
 }
 

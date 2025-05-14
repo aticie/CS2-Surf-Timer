@@ -25,6 +25,7 @@ public:
 
 	f64 interval {};
 	f64 lastExecute = -1;
+	bool removeable {};
 	bool useRealTime {};
 };
 

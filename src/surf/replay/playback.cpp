@@ -16,9 +16,15 @@ void CSurfBotReplayService::Init() {
 }
 
 void CSurfBotReplayService::DoPlayback(CCSPlayerPawn* pBotPawn, CInButtonState& buttons) {
-	auto& aFrames = SURF::ReplayPlugin()->m_aTrackReplays.at(m_iCurrentTrack);
+	auto& aFrames = const_cast<ReplayArray_t&>(NULL_REPLAY_ARRAY);
+	if (IsTrackBot()) {
+		aFrames = SURF::ReplayPlugin()->m_aTrackReplays.at(m_iCurrentTrack);
+	} else if (IsStageBot()) {
+		aFrames = SURF::ReplayPlugin()->m_aStageReplays.at(m_iCurrentStage);
+	}
+
 	auto iFrameSize = aFrames.size();
-	if (iFrameSize == 0) {
+	if (!iFrameSize) {
 		return;
 	}
 

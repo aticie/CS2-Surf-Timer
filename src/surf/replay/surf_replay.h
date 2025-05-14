@@ -40,30 +40,32 @@ struct replay_extraframe_t {
 
 class CSurfReplayService : CSurfPlayerService {
 private:
+	virtual void OnInit() override;
 	virtual void OnReset() override;
 
 public:
 	using CSurfPlayerService::CSurfPlayerService;
 
+	void Init();
 	void OnEnterStart_Recording();
 	void OnStart_Recording();
 	void OnTimerFinishPost_SaveRecording();
-	void FinishGrabbingStagePostFrames();
-	void FinishGrabbingTrackPostFrames();
+	void FinishGrabbingPostFrames(bool bStage = false);
 
 	void StartRecord();
 	void DoRecord(CCSPlayerPawn* pawn, const CPlayerButton& buttons, const QAngle& viewAngles);
-	void SaveRecord();
+	void SaveRecord(bool bStageReplay, ReplayArray_t* out = nullptr);
 	void ClearFrames();
 
 public:
-	bool m_bEnabled;
+	bool m_bEnabled {};
 	ReplayArray_t m_vCurrentFrames;
-	size_t m_iCurrentFrame;
+	size_t m_iCurrentFrame {};
 	replay_extraframe_t m_ExtraTrackFrame;
 	replay_extraframe_t m_ExtraStageFrame;
 
-	CTimerHandle m_hPostFrameTimer;
+	CTimerHandle m_hTrackPostFrameTimer;
+	CTimerHandle m_hStagePostFrameTimer;
 };
 
 class CSurfBotReplayService : CSurfBotService {
@@ -90,10 +92,12 @@ public:
 	}
 
 public:
-	bool m_bReplayBot;
-	i32 m_iCurrentTick;
-	TimerStage_t m_iCurrentStage;
-	TimerTrack_t m_iCurrentTrack;
+	static inline const ReplayArray_t NULL_REPLAY_ARRAY = {};
+
+	bool m_bReplayBot {};
+	TimerStage_t m_iCurrentStage {};
+	TimerTrack_t m_iCurrentTrack {};
+	size_t m_iCurrentTick {};
 };
 
 class CSurfReplayPlugin : CSurfForward, CMovementForward, CCoreForward {

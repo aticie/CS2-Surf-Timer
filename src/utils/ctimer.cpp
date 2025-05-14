@@ -34,7 +34,7 @@ static void ProcessTimerList(std::list<std::shared_ptr<CTimerBase>>& timers) {
 		}
 
 		if (pTimer->lastExecute + pTimer->interval <= currentTime) {
-			if (!pTimer->Execute()) {
+			if (!pTimer->Execute() || pTimer->removeable) {
 				it = timers.erase(it);
 				continue;
 			} else {
@@ -67,7 +67,7 @@ void UTIL::TIMER::RemoveTimer(CTimerHandle& hTimer) {
 	auto RemoveFromTimer = [pTimer](std::list<std::shared_ptr<CTimerBase>>& timers) {
 		auto it = std::find(timers.begin(), timers.end(), pTimer);
 		if (it != timers.end()) {
-			timers.erase(it);
+			pTimer->removeable = true;
 		}
 	};
 

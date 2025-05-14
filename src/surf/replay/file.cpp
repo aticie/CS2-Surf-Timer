@@ -55,8 +55,8 @@ std::string CSurfReplayPlugin::BuildReplayPath(const i8 style, const TimerTrack_
 		}
 	};
 
-	std::string sMaybeStage = (stage == 0) ? "" : fmt::format("s{}", stage);
-	return fmt::format("{}/{}{}{}.replay", sDirPath, SURF::GetStyleShortName(style), getTrackFileName(track), sMaybeStage);
+	std::string sMaybeStage = (stage == 0) ? "" : fmt::format("-s{}", stage);
+	return fmt::format("{}/{}-{}{}.replay", sDirPath, SURF::GetStyleShortName(style), getTrackFileName(track), sMaybeStage);
 }
 
 void CSurfReplayPlugin::AsyncWriteReplayFile(const replay_run_info_t& info, const ReplayArray_t& vFrames) {
@@ -78,7 +78,8 @@ void CSurfReplayPlugin::AsyncWriteReplayFile(const replay_run_info_t& info, cons
 
 		file.write(REPLAY_ARRAY_HEAD, std::strlen(REPLAY_ARRAY_HEAD));
 
-		for (const auto& frame : vFrames) {
+		for (size_t i = 0; i < info.framelength; i++) {
+			auto& frame = vFrames.at(i);
 			file.write(reinterpret_cast<const char*>(&frame), sizeof(frame));
 		}
 
