@@ -124,7 +124,7 @@ void CSurfReplayPlugin::AsyncWriteReplayFile(const replay_run_info_t& info, cons
 		header.info = info;
 		header.WriteToStream(file);
 
-		file.write(REPLAY_ARRAY_HEAD, std::strlen(REPLAY_ARRAY_HEAD));
+		WriteStreamString(file, REPLAY_ARRAY_HEAD);
 
 		std::vector<char> frames_buffer;
 
@@ -165,7 +165,7 @@ void CSurfReplayPlugin::AsyncWriteReplayFile(const replay_run_info_t& info, cons
 		file.write(reinterpret_cast<const char*>(&destSize), sizeof(destSize));
 		file.write(reinterpret_cast<const char*>(compressedData.data()), destSize);
 
-		file.write(REPLAY_ARRAY_TAIL, std::strlen(REPLAY_ARRAY_TAIL));
+		WriteStreamString(file, REPLAY_ARRAY_TAIL);
 	}).detach();
 }
 
@@ -202,6 +202,7 @@ bool CSurfReplayPlugin::ReadReplayFile(const std::string_view path, ReplayArray_
 		return false;
 	}
 
+	out = {};
 	out.reserve(iFrameLen);
 	for (size_t i = 0, offset = 0; i < iFrameLen; i++) {
 		replay_frame_data_t frame;

@@ -98,7 +98,7 @@ void CSurfReplayService::FinishGrabbingPostFrames(bool bStage) {
 	} else {
 		m_ExtraTrackFrame.bGrabEnd = false;
 		m_hTrackPostFrameTimer.Close();
-		SaveRecord(false, &pReplayPlugin->m_aTrackReplays[0]);
+		SaveRecord(false);
 	}
 }
 
