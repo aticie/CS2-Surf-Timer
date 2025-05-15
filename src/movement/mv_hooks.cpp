@@ -13,11 +13,6 @@ static void* Hook_OnMovementServicesRunCmds(CPlayer_MovementServices* pMovementS
 		return MEM::SDKCall<void*>(MOVEMENT::TRAMPOLINE::g_fnMovementServicesRunCmds, pMovementServices, pUserCmd);
 	}
 
-	CCSPlayerController* controller = pawn->GetController<CCSPlayerController>();
-	if (!controller) {
-		return MEM::SDKCall<void*>(MOVEMENT::TRAMPOLINE::g_fnMovementServicesRunCmds, pMovementServices, pUserCmd);
-	}
-
 	int32_t seed;
 	int32_t weapon;
 	int32_t cmdnum;
@@ -64,8 +59,8 @@ static void* Hook_OnMovementServicesRunCmds(CPlayer_MovementServices* pMovementS
 		baseCmd->set_forwardmove(vec[1]);
 		baseCmd->set_upmove(vec[2]);
 
-		// unavaliable
-		if (baseCmd->has_viewangles()) {
+		// unavaliable for players but bots
+		if (pawn->IsBot() && baseCmd->has_viewangles()) {
 			CMsgQAngle* viewangles = baseCmd->mutable_viewangles();
 			if (viewangles) {
 				viewangles->set_x(viewAngles.x);
