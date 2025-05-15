@@ -34,7 +34,7 @@ bool CSurfReplayPlugin::OnPlayerRunCmd(CCSPlayerPawn* pPawn, CInButtonState& but
 	if (pPawn->IsBot()) {
 		CSurfBot* pBot = SURF::GetBotManager()->ToPlayer(pPawn);
 		if (pBot && pBot->m_pReplayService->m_bReplayBot) {
-			pBot->m_pReplayService->DoPlayback(pPawn, buttons);
+			pBot->m_pReplayService->DoPlayback(pPawn, buttons, viewAngles);
 		}
 	}
 

@@ -5,8 +5,8 @@
 void CSurfReplayService::Init() {
 	m_bEnabled = false;
 	m_iCurrentFrame = 0;
+	m_vCurrentFrames = {};
 	m_vCurrentFrames.resize(10000);
-	m_vCurrentFrames.clear();
 	m_ExtraStageFrame = {};
 	m_ExtraTrackFrame = {};
 	m_hTrackPostFrameTimer.Close();
@@ -89,6 +89,8 @@ void CSurfReplayService::OnTimerFinishPost_SaveRecording() {
 }
 
 void CSurfReplayService::FinishGrabbingPostFrames(bool bStage) {
+	auto pReplayPlugin = SURF::ReplayPlugin();
+
 	if (bStage) {
 		m_ExtraStageFrame.bGrabEnd = false;
 		m_hStagePostFrameTimer.Close();
@@ -96,7 +98,7 @@ void CSurfReplayService::FinishGrabbingPostFrames(bool bStage) {
 	} else {
 		m_ExtraTrackFrame.bGrabEnd = false;
 		m_hTrackPostFrameTimer.Close();
-		SaveRecord(false);
+		SaveRecord(false, &pReplayPlugin->m_aTrackReplays[0]);
 	}
 }
 
@@ -136,6 +138,7 @@ void CSurfReplayService::SaveRecord(bool bStageReplay, ReplayArray_t* out) {
 	info.framelength = m_iCurrentFrame - (bStageReplay ? m_ExtraStageFrame.iPreStart : 0);
 
 	ReplayArray_t aFrames = bStageReplay ? UTIL::VECTOR::Slice(m_vCurrentFrames, m_ExtraStageFrame.iPreStart, m_iCurrentFrame) : m_vCurrentFrames;
+	aFrames.resize(info.framelength);
 
 	if (out) {
 		*out = aFrames;

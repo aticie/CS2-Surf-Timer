@@ -65,14 +65,14 @@ static void* Hook_OnMovementServicesRunCmds(CPlayer_MovementServices* pMovementS
 		baseCmd->set_upmove(vec[2]);
 
 		// unavaliable
-		/*if (baseCmd->has_viewangles()) {
+		if (baseCmd->has_viewangles()) {
 			CMsgQAngle* viewangles = baseCmd->mutable_viewangles();
 			if (viewangles) {
 				viewangles->set_x(viewAngles.x);
 				viewangles->set_y(viewAngles.y);
 				viewangles->set_z(viewAngles.z);
 			}
-		}*/
+		}
 	}
 
 	if (block) {

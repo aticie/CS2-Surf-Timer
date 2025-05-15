@@ -19,7 +19,7 @@ void CSurfMiscPlugin::OnPluginStart() {
 }
 
 void CSurfMiscPlugin::TweakCvars() {
-	static constexpr const char* tweakCvars[] = {"sv_infinite_ammo", "bot_stop", "sv_debug_overlays_broadcast"};
+	static constexpr const char* tweakCvars[] = {"sv_infinite_ammo", "bot_freeze", "bot_stop", "bot_zombie", "sv_debug_overlays_broadcast"};
 	// static constexpr const char* tweakCmds[] = {""};
 
 	for (size_t i = 0; i < ARRAYSIZE(tweakCvars); i++) {

@@ -76,7 +76,7 @@ public:
 
 public:
 	void Init();
-	void DoPlayback(CCSPlayerPawn* pPawn, CInButtonState& buttons);
+	void DoPlayback(CCSPlayerPawn* pPawn, CInButtonState& buttons, QAngle& viewAngles);
 
 	bool IsReplayBot() const {
 		return m_bReplayBot;

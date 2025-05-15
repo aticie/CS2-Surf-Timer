@@ -35,7 +35,7 @@ void CSurfHudPlugin::OnPlayerSpawn(IGameEvent* pEvent, const char* szName, bool 
 	CHandle<CCSPlayerController> hController = pController->GetRefEHandle();
 	UTIL::RequestFrame([hController, wpSpeedText]() {
 		CCSPlayerController* pController = hController.Get();
-		if (!pController) {
+		if (!pController || pController->IsBot()) {
 			return;
 		}
 

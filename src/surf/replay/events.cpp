@@ -25,7 +25,7 @@ EVENT_CALLBACK_POST(OnPlayerSpawm) {
 			return;
 		}
 
-		pPawn->SetMoveType(MOVETYPE_NOCLIP);
+		pPawn->m_MoveType(MOVETYPE_NOCLIP);
 
 		CSurfBot* pBot = SURF::GetBotManager()->ToPlayer(pPawn);
 		if (pBot) {
