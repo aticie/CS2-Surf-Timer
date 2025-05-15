@@ -28,7 +28,7 @@ EVENT_CALLBACK_POST(OnPlayerSpawm) {
 		CSurfBot* pBot = SURF::GetBotManager()->ToPlayer(pPawn);
 		if (pBot) {
 			pBot->m_pReplayService->m_bReplayBot = true;
-			pBot->m_pReplayService->m_iCurrentTrack = Track_Main;
+			pBot->m_pReplayService->m_info.iTrack = Track_Main;
 		}
 	});
 }

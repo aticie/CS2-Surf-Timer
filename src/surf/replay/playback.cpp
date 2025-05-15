@@ -10,29 +10,57 @@ void CSurfBotReplayService::OnReset() {
 }
 
 void CSurfBotReplayService::Init() {
-	m_iCurrentTick = 0;
-	m_iCurrentTrack = -1;
-	m_iCurrentStage = -1;
+	m_info.iTick = 0;
+	m_info.iTrack = -1;
+	m_info.iStage = -1;
 }
 
 void CSurfBotReplayService::DoPlayback(CCSPlayerPawn* pBotPawn, CInButtonState& buttons, QAngle& viewAngles) {
 	auto& aFrames = const_cast<ReplayArray_t&>(NULL_REPLAY_ARRAY);
 	if (IsTrackBot()) {
-		aFrames = SURF::ReplayPlugin()->m_aTrackReplays.at(m_iCurrentTrack);
+		aFrames = SURF::ReplayPlugin()->m_aTrackReplays.at(m_info.iTrack);
 	} else if (IsStageBot()) {
-		aFrames = SURF::ReplayPlugin()->m_aStageReplays.at(m_iCurrentStage);
+		aFrames = SURF::ReplayPlugin()->m_aStageReplays.at(m_info.iStage);
 	}
 
-	auto iFrameSize = aFrames.size();
+	size_t iFrameSize = aFrames.size();
 	if (!iFrameSize) {
 		return;
 	}
 
-	if (m_iCurrentTick >= iFrameSize) {
-		m_iCurrentTick = 0;
+	if (m_info.iStatus == Replay_End) {
+		return;
 	}
 
-	auto& frame = aFrames.at(m_iCurrentTick);
+	if (m_info.iStatus == Replay_Start) {
+	}
+
+	size_t iLimit = iFrameSize;
+
+	if (m_info.iTick >= iLimit) {
+		m_info.iTick = iLimit;
+		m_info.iRealTick = iLimit;
+		m_info.iStatus = Replay_End;
+		m_info.hRestartTimer = UTIL::CreateTimer(
+			m_info.fRestartDelay,
+			[](CHandle<CCSPlayerController> hController) {
+				auto pController = hController.Get();
+				if (!pController || !pController->IsBot()) {
+					return -1.0;
+				}
+
+				auto pSurfBot = SURF::GetBotManager()->ToPlayer(pController);
+				if (pSurfBot) {
+					pSurfBot->m_pReplayService->FinishReplay();
+				}
+
+				return -1.0;
+			},
+			GetPlayer()->GetController()->GetRefEHandle());
+		return;
+	}
+
+	auto& frame = aFrames.at(m_info.iTick);
 	viewAngles = frame.ang;
 
 	auto botFlags = pBotPawn->m_fFlags();
@@ -41,7 +69,7 @@ void CSurfBotReplayService::DoPlayback(CCSPlayerPawn* pBotPawn, CInButtonState& 
 	buttons.down = frame.buttons;
 
 	const Vector& vecCurrentPos = pBotPawn->GetAbsOrigin();
-	if (m_iCurrentTick == 0 || vecCurrentPos.DistTo(frame.pos) > 15000.0) {
+	if (m_info.iTick == 0 || vecCurrentPos.DistTo(frame.pos) > 15000.0) {
 		pBotPawn->m_MoveType(MoveType_t::MOVETYPE_NOCLIP);
 		pBotPawn->Teleport(&frame.pos, nullptr, &SURF::ZERO_VEC);
 	} else {
@@ -50,5 +78,30 @@ void CSurfBotReplayService::DoPlayback(CCSPlayerPawn* pBotPawn, CInButtonState& 
 		pBotPawn->Teleport(nullptr, nullptr, &vecCalculatedVelocity);
 	}
 
-	m_iCurrentTick++;
+	m_info.iTick += m_info.b2x ? 2 : 1;
+	m_info.iRealTick += m_info.b2x ? 2 : 1;
+}
+
+void CSurfBotReplayService::StartReplay(const replay_bot_info_t* info) {
+	if (info) {
+		m_info = *info;
+	}
+}
+
+void CSurfBotReplayService::FinishReplay(const replay_bot_info_t* info) {
+	if (info) {
+		m_info = *info;
+	}
+
+	switch (m_info.iType) {
+		case Replay_Central: {
+			break;
+		}
+		case Replay_Looping: {
+			break;
+		}
+		case Replay_Dynamic: {
+			break;
+		}
+	}
 }

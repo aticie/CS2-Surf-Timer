@@ -38,6 +38,34 @@ struct replay_extraframe_t {
 	size_t iEndStart {};
 };
 
+enum ReplayStatus : i8 {
+	Replay_Start = 0,
+	Replay_Running,
+	Replay_End,
+	Replay_Idle
+};
+
+enum ReplayBotType : i8 {
+	Replay_Central = 0,
+	Replay_Looping, // these are the ones that loop styles, tracks, and (eventually) stages...
+	Replay_Dynamic, // these are bots that spawn on !replay when the central bot is taken
+};
+
+struct replay_bot_info_t {
+	TimerStyle_t iStyle {};
+	TimerTrack_t iTrack = -1;
+	TimerStage_t iStage = -1;
+	ReplayStatus iStatus = Replay_Idle;
+	ReplayBotType iType = Replay_Central;
+	bool b2x = false;
+	f32 fRealTime {};
+	size_t iTick {};
+	size_t iRealTick {};
+	f32 fRestartDelay = 1.0f;
+	CHandle<CCSPlayerController> hStarter;
+	CTimerHandle hRestartTimer;
+};
+
 class CSurfReplayService : CSurfPlayerService {
 private:
 	virtual void OnInit() override;
@@ -77,26 +105,26 @@ public:
 public:
 	void Init();
 	void DoPlayback(CCSPlayerPawn* pPawn, CInButtonState& buttons, QAngle& viewAngles);
+	void StartReplay(const replay_bot_info_t* info = nullptr);
+	void FinishReplay(const replay_bot_info_t* info = nullptr);
 
 	bool IsReplayBot() const {
 		return m_bReplayBot;
 	}
 
 	bool IsStageBot() const {
-		return m_iCurrentStage != -1;
+		return m_info.iStage != -1;
 	}
 
 	bool IsTrackBot() const {
-		return m_iCurrentTrack != -1;
+		return m_info.iTrack != -1;
 	}
 
 public:
 	static inline const ReplayArray_t NULL_REPLAY_ARRAY = {};
 
 	bool m_bReplayBot {};
-	TimerStage_t m_iCurrentStage = -1;
-	TimerTrack_t m_iCurrentTrack = -1;
-	size_t m_iCurrentTick {};
+	replay_bot_info_t m_info {};
 };
 
 class CSurfReplayPlugin : CSurfForward, CMovementForward, CCoreForward {
