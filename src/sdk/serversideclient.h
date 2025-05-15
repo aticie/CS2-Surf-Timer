@@ -81,7 +81,7 @@ public:
 	virtual void OnShutdownChannel(INetChannel * pChannel) = 0;
 };
 
-class CServerSideClientBase : public INetworkChannelNotify, public CUtlSlot, public INetworkMessageProcessingPreFilter {
+class CServerSideClientBase : public CUtlSlot, public INetworkChannelNotify, public INetworkMessageProcessingPreFilter {
 public:
 	virtual ~CServerSideClientBase() = 0;
 
@@ -408,6 +408,7 @@ private:
 
 #ifdef _WIN32
 COMPILE_TIME_ASSERT(sizeof(CServerSideClientBase) == 2944);
+COMPILE_TIME_ASSERT(offsetof(CServerSideClientBase, m_nDeltaTick) == 308);
 #else
 COMPILE_TIME_ASSERT(sizeof(CServerSideClientBase) == 2960);
 #endif
