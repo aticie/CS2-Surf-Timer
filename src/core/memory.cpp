@@ -86,6 +86,14 @@ SndOpEventGuid_t MEM::CALL::EmitSound(IRecipientFilter& filter, CEntityIndex ent
 	CALL_SIG("EmitSound", EmitSound, &filter, ent, &params);
 }
 
+bool MEM::CALL::BotAddCommand(int team, bool isFromConsole, const char* profileName, CSWeaponType weaponType, int difficulty) {
+#ifdef _WIN32
+	CALL_SIG("CCSBotManager::BotAddCommand", BotAddCommand, nullptr, team, isFromConsole, profileName, weaponType, difficulty);
+#else
+	CALL_SIG("CCSBotManager::BotAddCommand", BotAddCommand, team, isFromConsole, profileName, weaponType, difficulty);
+#endif
+}
+
 #pragma endregion
 
 #pragma region hooks

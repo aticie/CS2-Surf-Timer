@@ -342,6 +342,18 @@
 			"library": "server",
 			"windows": "80 B8 ? ? ? ? ? 0F 84 ? ? ? ? 80 3D ? ? ? ? ? 74",
 			"linux": "48 8D 05 ? ? ? ? 48 8B 00 48 85 C0 74 2E 80 B8 ? ? ? ? 00 74 25 48 8D 05 ? ? ? ? 80 38 00 75 31 44 8B 85 ? ? ? ? 31 F6 BF 03"
+		},
+		// "nokick" & "fill"
+		"CCSBotManager::MaintainBotQuota": {
+			"library": "server",
+			"windows": "40 53 48 81 EC 80 00 00 00 48 8B D9 FF 15 ? ? ? ? 45 33 C0",
+			"linux": "55 31 F6 48 89 E5 41 57 49 89 FF"
+		},
+		// "Could not add bot to the game: The game is full"
+		"CCSBotManager::BotAddCommand": {
+			"library": "server",
+			"windows": "48 89 5C 24 ? 48 89 6C 24 ? 48 89 74 24 ? 57 41 54 41 55 41 56 41 57 48 83 EC ? 48 8B 05 ? ? ? ? 4D 8B F9",
+			"linux": "55 48 89 E5 41 57 41 89 CF 41 56 41 55 41 54 41 89 FC"
 		}
 	}
 }

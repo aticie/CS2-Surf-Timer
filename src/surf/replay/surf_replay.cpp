@@ -20,6 +20,12 @@ void CSurfReplayPlugin::OnPluginStart() {
 	HookEvents();
 }
 
+void CSurfReplayPlugin::OnClientPutInServer(ISource2GameClients* pClient, CPlayerSlot slot, char const* pszName, int type, uint64 xuid) {
+	if (!xuid) {
+		m_iLatestBot = slot;
+	}
+}
+
 void CSurfReplayPlugin::OnEntitySpawned(CEntityInstance* pEntity) {
 	const char* sClassname = pEntity->GetClassname();
 	if (V_strstr(sClassname, "trigger_") || V_strstr(sClassname, "_door")) {
@@ -76,6 +82,17 @@ bool CSurfReplayPlugin::OnLeaveZone(const ZoneCache_t& zone, CSurfPlayer* pPlaye
 
 void CSurfReplayPlugin::OnTimerFinishPost(CSurfPlayer* pPlayer) {
 	pPlayer->m_pReplayService->OnTimerFinishPost_SaveRecording();
+}
+
+CSurfBot* CSurfReplayPlugin::CreateBot(const char* name) const {
+	MEM::CALL::BotAddCommand(CS_TEAM_CT);
+
+	auto pBot = SURF::GetBotManager()->ToPlayer(m_iLatestBot);
+	if (name) {
+		pBot->SetName(name);
+	}
+
+	return pBot;
 }
 
 void CSurfReplayService::OnInit() {

@@ -102,6 +102,7 @@ public:
 class CSurfReplayPlugin : CSurfForward, CMovementForward, CCoreForward {
 private:
 	virtual void OnPluginStart() override;
+	virtual void OnClientPutInServer(ISource2GameClients* pClient, CPlayerSlot slot, char const* pszName, int type, uint64 xuid) override;
 	virtual void OnEntitySpawned(CEntityInstance* pEntity) override;
 
 	virtual bool OnPlayerRunCmd(CCSPlayerPawn* pPawn, CInButtonState& buttons, float (&vec)[3], QAngle& viewAngles, int& weapon, int& cmdnum, int& tickcount, int& seed, int (&mouse)[2]) override;
@@ -116,6 +117,7 @@ public:
 	std::string BuildReplayPath(const i8 style, const TimerTrack_t track, const i8 stage, const std::string_view map);
 	void AsyncWriteReplayFile(const replay_run_info_t& info, const ReplayArray_t& vFrames);
 	bool ReadReplayFile(const std::string_view path, ReplayArray_t& out);
+	CSurfBot* CreateBot(const char* name = nullptr) const;
 
 private:
 	void HookEvents();
@@ -129,6 +131,9 @@ public:
 
 	std::array<ReplayArray_t, SURF_MAX_TRACK> m_aTrackReplays;
 	std::array<ReplayArray_t, SURF_MAX_STAGE> m_aStageReplays;
+
+private:
+	CPlayerSlot m_iLatestBot = -1;
 };
 
 namespace SURF {

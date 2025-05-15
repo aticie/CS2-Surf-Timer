@@ -4,6 +4,7 @@
 
 #include <sdk/common.h>
 #include <sdk/datatypes.h>
+#include <sdk/server/weapon.h>
 #include <libmem/libmem_helper.h>
 #include <libmodule/module.h>
 #include <polyhook2/Detour/NatDetour.hpp>
@@ -36,6 +37,7 @@ namespace MEM {
 		void SetParent(CBaseEntity* pEnt, CBaseEntity* pParent);
 		void SetEntityName(CEntityIdentity* pEnt, const char* pszName);
 		SndOpEventGuid_t EmitSound(IRecipientFilter& filter, CEntityIndex ent, const EmitSound_t& params);
+		bool BotAddCommand(int team, bool isFromConsole = false, const char* profileName = nullptr, CSWeaponType weaponType = WEAPONTYPE_UNKNOWN, int difficulty = 0);
 	} // namespace CALL
 
 	namespace MODULE {
