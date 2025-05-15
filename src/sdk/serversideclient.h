@@ -54,10 +54,34 @@ public:
 	int m_nCurBit;
 }; // sizeof 40
 
-// class CServerSideClientBase: CUtlSlot, INetworkChannelNotify, INetworkMessageProcessingPreFilter;
-class CServerSideClientBase {
-	virtual void UnkDestructor() = 0;
+struct CUtlSignaller_Base {
+	CUtlDelegate<void(CUtlSlot*)> m_SlotDeletionDelegate;
+};
 
+class CUtlSlot {
+	/*CUtlVectorMT<CUtlVector<CUtlSignaller_Base*>, CThreadFastMutex> m_ConnectedSignallers;
+
+	void* m_pData;
+
+#ifdef __linux__
+	uint32 m_nData2;
+	int16 m_nData2_2;
+#endif*/
+	MEM_PAD(WIN_LINUX(40, 56));
+};
+
+#ifdef _WIN32
+COMPILE_TIME_ASSERT(sizeof(CUtlSlot) == 40);
+#else
+COMPILE_TIME_ASSERT(sizeof(CUtlSlot) == 56);
+#endif
+
+abstract_class INetworkChannelNotify {
+public:
+	virtual void OnShutdownChannel(INetChannel * pChannel) = 0;
+};
+
+class CServerSideClientBase : public INetworkChannelNotify, public CUtlSlot, public INetworkMessageProcessingPreFilter {
 public:
 	virtual ~CServerSideClientBase() = 0;
 
@@ -86,10 +110,6 @@ public:
 		return m_NetChannel;
 	}
 
-	const ns_address GetRemoteAddress() const {
-		return m_nAddr;
-	}
-
 	CNetworkGameServerBase* GetServer() const {
 		return m_Server;
 	}
@@ -112,7 +132,7 @@ public:
 
 	virtual void Clear() = 0;
 
-	virtual void ExecuteStringCommand(const CNETMsg_StringCmd& msg) = 0;
+	virtual bool ExecuteStringCommand(const CNETMsg_StringCmd_t& msg) = 0; // "false" trigger an anti spam counter to kick a client.
 	virtual void SendNetMessage(const CNetMessage* pData, NetChannelBufType_t bufType) = 0;
 
 #ifdef LINUX
@@ -140,14 +160,32 @@ public:
 		return m_nSignonState == SIGNONSTATE_FULL;
 	}
 
-	virtual bool IsFakeClient() = 0;
+	virtual bool IsFakeClient() const {
+		return m_bFakePlayer;
+	}
 
 	virtual bool IsHLTV() = 0;
 
 	// Is an actual human player or splitscreen player (not a bot and not a HLTV slot)
-	virtual bool IsHumanPlayer() = 0;
+	virtual bool IsHumanPlayer() const {
+		return false;
+	}
 
-	virtual bool IsHearingClient(CPlayerSlot nSlot) = 0;
+	virtual bool IsHearingClient(CPlayerSlot nSlot) const {
+		return false;
+	}
+
+	virtual bool IsLowViolenceClient() const {
+		return m_bLowViolence;
+	}
+
+	virtual bool IsSplitScreenUser() const {
+		return m_bSplitScreenUser;
+	}
+
+	int GetClientPlatform() const {
+		return m_ClientPlatform;
+	} // CrossPlayPlatform_t
 
 public: // Message Handlers
 	virtual bool ProcessTick(const CNETMsg_Tick_t& msg) = 0;
@@ -202,13 +240,15 @@ public:
 	virtual bool UpdateAcknowledgedFramecount(int tick) = 0;
 
 	void ForceFullUpdate() {
-		m_nForceWaitForTick = -1;
+		UpdateAcknowledgedFramecount(-1);
 	}
 
 	virtual bool ShouldSendMessages() = 0;
 	virtual void UpdateSendState() = 0;
 
-	virtual CMsgPlayerInfo& GetPlayerInfo() = 0;
+	virtual const CMsgPlayerInfo& GetPlayerInfo() const {
+		return m_playerInfo;
+	}
 
 	virtual void UpdateUserSettings() = 0;
 	virtual void ResetUserSettings() = 0;
@@ -224,7 +264,7 @@ public:
 	virtual void SetName(const char* name) = 0;
 	virtual void SetUserCVar(const char* cvar, const char* value) = 0;
 
-	int GetSignonState() const {
+	SignonState_t GetSignonState() const {
 		return m_nSignonState;
 	}
 
@@ -238,7 +278,9 @@ public:
 		m_bFullyAuthenticated = true;
 	}
 
-	virtual CServerSideClientBase* GetSplitScreenOwner() = 0;
+	virtual CServerSideClientBase* GetSplitScreenOwner() {
+		return m_pAttachedTo;
+	}
 
 	virtual int GetNumPlayers() = 0;
 
@@ -266,56 +308,108 @@ public:
 	virtual bool ProcessSignonStateMsg(int state) = 0;
 	virtual void PerformDisconnection(ENetworkDisconnectionReason reason) = 0;
 
+public:                                                                              // INetworkMessageProcessingPreFilter
+	virtual bool FilterMessage(const CNetMessage* pData, INetChannel* pChannel) = 0; // "Client %d(%s) tried to send a RebroadcastSourceId msg.\n"
+
 public:
-	void* m_pVT1; // INetworkMessageProcessingPreFilter
+	CUtlString m_UserIDString;                    // 72
+	CUtlString m_Name;                            // 80
+	CPlayerSlot m_nClientSlot;                    // 88
+	CEntityIndex m_nEntityIndex;                  // 92
+	CNetworkGameServerBase* m_Server;             // 96
+	INetChannel* m_NetChannel;                    // 104
+	uint8 m_nUnkVariable;                         // 112
+	bool m_bMarkedToKick;                         // 113
+	SignonState_t m_nSignonState;                 // 116
+	bool m_bSplitScreenUser;                      // 120
+	bool m_bSplitAllowFastDisconnect;             // 121
+	int m_nSplitScreenPlayerSlot;                 // 124
+	CServerSideClientBase* m_SplitScreenUsers[4]; // 128
+	CServerSideClientBase* m_pAttachedTo;         // 160
+	bool m_bSplitPlayerDisconnecting;             // 168
+	int m_UnkVariable172;                         // 172
+	bool m_bFakePlayer;                           // 176
+	bool m_bSendingSnapshot;                      // 177
+	[[maybe_unused]] char pad6[0x5];
+	CPlayerUserId m_UserID = -1; // 184
+	bool m_bReceivedPacket;      // true, if client received a packet after the last send packet
+	CSteamID m_SteamID;          // 187
+	CSteamID m_UnkSteamID;       // 195
+	CSteamID m_UnkSteamID2;      // 203 from auth ticket
+	CSteamID m_nFriendsID;       // 211
+	ns_address m_nAddr;          // 220
+	ns_address m_nAddr2;         // 252
+	KeyValues* m_ConVars;        // 288
+	bool m_bConVarsChanged;      // 296
+	bool m_bConVarsInited;       // 297
+	bool m_bIsHLTV;              // 298
+	bool m_bIsReplay;            // 299
 
 private:
-	MEM_PAD(0x20);
-#ifdef __linux__
-	MEM_PAD(0x10);
-#endif
+	[[maybe_unused]] char pad29[0xA];
 
 public:
-	void (*RebroadcastSource)(int msgID); // 48
-	CUtlString m_UserIDString;            // 56
-	CUtlString m_Name;                    // 64
-	CPlayerSlot m_nClientSlot;            // 72
-	CEntityIndex m_nEntityIndex;          // 76
-	CNetworkGameServerBase* m_Server;     // 80
-	INetChannel* m_NetChannel;            // 88
-	uint8 m_nUnkVariable;                 // 96
-	bool m_bMarkedToKick;                 // 97
-	int32 m_nSignonState;                 // 100
-	MEM_PAD(0x38);
-	bool m_bFakePlayer; // 160
-	MEM_PAD(0x7);
-	CPlayerUserId m_UserID; // 168
-	CSteamID m_SteamID;     // 170
-	CSteamID m_UnkSteamID;  // 195
-	CSteamID m_UnkSteamID2; // 203 from auth ticket
-	CSteamID m_nFriendsID;  // 211
-	ns_address m_nAddr;     // 220
-	ns_address m_nAddr2;    // 252
-	KeyValues* m_ConVars;   // 288
-	bool m_bConVarsChanged; // 296
-	bool m_bConVarsInited;  // 297
-	bool m_bIsHLTV;         // 298
-	bool m_bIsReplay;       // 299
+	uint32 m_nSendtableCRC;                   // 312
+	int m_ClientPlatform;                     // 316
+	int m_nSignonTick;                        // 320
+	int m_nDeltaTick;                         // 324
+	int m_UnkVariable3;                       // 328
+	int m_nStringTableAckTick;                // 332
+	int m_UnkVariable4;                       // 336
+	CFrameSnapshot* m_pLastSnapshot;          // last send snapshot
+	CUtlVector<void*> m_vecLoadedSpawnGroups; // 352
+	CMsgPlayerInfo m_playerInfo;              // 376
+	CFrameSnapshot* m_pBaseline;              // 432
+	int m_nBaselineUpdateTick;                // 440
+	CBitVec<MAX_EDICTS> m_BaselinesSent;      // 444
+	int m_nBaselineUsed;                      // 0/1 toggling flag, singaling client what baseline to use
+	int m_nLoadingProgress;                   // 0..100 progress, only valid during loading
+
+	// This is used when we send out a nodelta packet to put the client in a state where we wait
+	// until we get an ack from them on this packet.
+	// This is for 3 reasons:
+	// 1. A client requesting a nodelta packet means they're screwed so no point in deluging them with data.
+	//    Better to send the uncompressed data at a slow rate until we hear back from them (if at all).
+	// 2. Since the nodelta packet deletes all client entities, we can't ever delta from a packet previous to it.
+	// 3. It can eat up a lot of CPU on the server to keep building nodelta packets while waiting for
+	//    a client to get back on its feet.
+	int m_nForceWaitForTick = -1;
+
+	CCircularBuffer m_UnkBuffer = {1024};    // 2504 (24 bytes)
+	bool m_bLowViolence = false;             // true if client is in low-violence mode (L4D server needs to know)
+	bool m_bSomethingWithAddressType = true; // 2529
+	bool m_bFullyAuthenticated = false;      // 2530
+	bool m_bUnk1 = false;                    // 2531
+	int m_nUnk;
+
+	// The datagram is written to after every frame, but only cleared
+	// when it is sent out to the client.  overflow is tolerated.
+
+	// Time when we should send next world state update ( datagram )
+	float m_fNextMessageTime = 0.0f;
+	float m_fAuthenticatedTime = -1.0f;
+
+	// Default time to wait for next message
+	float m_fSnapshotInterval = 0.0f;
 
 private:
-	MEM_PAD(0x15);
+	// CSVCMsg_PacketEntities_t m_packetmsg;  // 2552
+	[[maybe_unused]] char pad2552[0x138]; // 2552
 
 public:
-	int m_nForceWaitForTick; // 308
-	MEM_PAD(0x882);
-	bool m_bFullyAuthenticated = false; // 2490
-	MEM_PAD(0x1C2);
+	CNetworkStatTrace m_Trace;          // 2864
+	int m_spamCommandsCount = 0;        // 2904 if the value is greater than 16, the player will be kicked with reason 39
+	int m_unknown = 0;                  // 2908
+	double m_lastExecutedCommand = 0.0; // 2912 if command executed more than once per second, ++m_spamCommandCount
+
+private:
+	[[maybe_unused]] char pad2920[0x28]; // 2920
 };
-
-// constexpr auto dsa = offsetof(CServerSideClientBase, m_nSignonState);
 
 #ifdef _WIN32
 COMPILE_TIME_ASSERT(sizeof(CServerSideClientBase) == 2944);
+#else
+COMPILE_TIME_ASSERT(sizeof(CServerSideClientBase) == 2960);
 #endif
 
 class CServerSideClient : public CServerSideClientBase {
