@@ -110,6 +110,15 @@ void CPlayer::Kick(const char* internalReason, ENetworkDisconnectionReason reaso
 	IFACE::pEngine->KickClient(this->GetPlayerSlot(), internalReason, reason);
 }
 
+void CPlayer::SetName(const char* name) {
+	CCSPlayerController* pController = GetController();
+	if (!pController) {
+		return;
+	}
+
+	pController->SetPlayerName(name);
+}
+
 CPlayer* CPlayerManager::ToPlayer(CServerSideClientBase* pClient) const {
 	return this->ToPlayer(CPlayerSlot(pClient->GetPlayerSlot()));
 }

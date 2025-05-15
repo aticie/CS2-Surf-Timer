@@ -2,6 +2,13 @@
 #include <core/memory.h>
 #include <utils/utils.h>
 
+void CBasePlayerController::SetPlayerName(const char* pszName) {
+	this->m_iszPlayerName(pszName);
+
+	CServerSideClient* pClient = UTIL::GetClientBySlot(GetPlayerSlot());
+	pClient->SetName(pszName);
+}
+
 bool CBasePlayerController::IsObserver() {
 	auto pPawn = GetCurrentPawn();
 	if (!pPawn) {

@@ -26,7 +26,7 @@ public:
 	SCHEMA_FIELD(bool, m_bIsHLTV);
 	SCHEMA_FIELD(CHandle<CCSPlayerPawn>, m_hPawn);
 	SCHEMA_FIELD(PlayerConnectedState, m_iConnected);
-	SCHEMA_FIELD_POINTER(char, m_iszPlayerName);
+	SCHEMA_FIELD_STRING(m_iszPlayerName, 128);
 
 	CBasePlayerPawn* GetCurrentPawn() {
 		return m_hPawn().Get();
@@ -35,6 +35,8 @@ public:
 	const char* GetPlayerName() {
 		return m_iszPlayerName();
 	}
+
+	void SetPlayerName(const char* pszName);
 
 	int GetPlayerSlot() {
 		return entindex() - 1;

@@ -99,6 +99,7 @@ public:
 	virtual CSteamID GetSteamId(bool validated = false) const;
 
 	virtual void Kick(const char* internalReason, ENetworkDisconnectionReason reason);
+	virtual void SetName(const char* name);
 
 	uint64 GetSteamId64(bool validated = false) const {
 		return GetSteamId(validated).ConvertToUint64();
