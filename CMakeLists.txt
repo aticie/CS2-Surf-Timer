@@ -15,6 +15,7 @@ include_directories(
 	./vendor/nlohmann
 	./vendor/fmt/include
 	./vendor/polyhook/include
+	./vendor/zlib/include
 )
 
 if(WIN32)
@@ -23,6 +24,7 @@ if(WIN32)
 			"./vendor/libmodule/lib/*.lib"
 			"./vendor/libhv/lib/*.lib"
 			"./vendor/polyhook/lib/*.lib"
+			"./vendor/zlib/lib/*.lib"
 	)
 else()
 	file(GLOB SURFTIMER_LIBS 
@@ -30,6 +32,7 @@ else()
 			"./vendor/libmodule/lib/*.a"
 			"./vendor/libhv/lib/*.a"
 			"./vendor/polyhook/lib/*.a"
+			"./vendor/zlib/lib/*.a"
 	)
 endif()
 

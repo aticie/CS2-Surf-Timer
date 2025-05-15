@@ -2,9 +2,7 @@
 #include <thread>
 #include <utils/utils.h>
 #include <fmt/format.h>
-
-constexpr auto REPLAY_ARRAY_HEAD = "===ARRAY_HEAD===";
-constexpr auto REPLAY_ARRAY_TAIL = "===ARRAY_TAIL===";
+#include <zlib/zlib.h>
 
 struct replay_packed_button_t {
 	u8 attack: 1 {};
@@ -51,6 +49,10 @@ struct replay_packed_button_t {
 
 	// clang-format on
 };
+
+constexpr auto REPLAY_ARRAY_HEAD = "===ARRAY_HEAD===";
+constexpr auto REPLAY_ARRAY_TAIL = "===ARRAY_TAIL===";
+constexpr size_t REPLAY_FRAME_SIZE = sizeof(Vector2D) + sizeof(replay_frame_data_t::pos) + sizeof(replay_frame_data_t::flags) + sizeof(replay_frame_data_t::mt) + sizeof(replay_packed_button_t);
 
 static void ReadStreamString(std::ifstream& file, std::string& outStr) {
 	uint32_t len = 0;
@@ -124,21 +126,46 @@ void CSurfReplayPlugin::AsyncWriteReplayFile(const replay_run_info_t& info, cons
 
 		file.write(REPLAY_ARRAY_HEAD, std::strlen(REPLAY_ARRAY_HEAD));
 
-		for (size_t i = 0; i < info.framelength; i++) {
-			auto& frame = vFrames.at(i);
+		std::vector<char> frames_buffer;
 
-			file.write(reinterpret_cast<const char*>(&frame.ang), sizeof(Vector2D));
-			file.write(reinterpret_cast<const char*>(&frame.pos), sizeof(frame.pos));
-			file.write(reinterpret_cast<const char*>(&frame.flags), sizeof(frame.flags));
-			file.write(reinterpret_cast<const char*>(&frame.mt), sizeof(frame.mt));
+		frames_buffer.resize(info.framelength * REPLAY_FRAME_SIZE);
 
-			replay_packed_button_t packData(frame.buttons);
-			file.write(reinterpret_cast<const char*>(&packData), sizeof(packData));
+		for (size_t i = 0, offset = 0; i < info.framelength; i++) {
+			const auto& frame = vFrames.at(i);
+
+			std::memcpy(frames_buffer.data() + offset, &frame.ang, sizeof(Vector2D));
+			offset += sizeof(Vector2D);
+
+			std::memcpy(frames_buffer.data() + offset, &frame.pos, sizeof(frame.pos));
+			offset += sizeof(frame.pos);
+
+			std::memcpy(frames_buffer.data() + offset, &frame.flags, sizeof(frame.flags));
+			offset += sizeof(frame.flags);
+
+			std::memcpy(frames_buffer.data() + offset, &frame.mt, sizeof(frame.mt));
+			offset += sizeof(frame.mt);
+
+			replay_packed_button_t packButton(frame.buttons);
+			std::memcpy(frames_buffer.data() + offset, &packButton, sizeof(packButton));
+			offset += sizeof(packButton);
 		}
 
-		file.write(REPLAY_ARRAY_TAIL, std::strlen(REPLAY_ARRAY_TAIL));
+		const uLong sourceSize = static_cast<uLong>(frames_buffer.size());
+		uLongf destSize = compressBound(sourceSize);
+		std::vector<Bytef> compressedData(destSize);
 
-		file.close();
+		int ret = compress2(compressedData.data(), &destSize, reinterpret_cast<const Bytef*>(frames_buffer.data()), sourceSize, Z_BEST_COMPRESSION);
+
+		if (ret != Z_OK) {
+			LOG::Error("Failed to WriteReplayFile: %s, Reason: zlib compress failed", sFilePath.data());
+			SDK_ASSERT(false);
+			return;
+		}
+
+		file.write(reinterpret_cast<const char*>(&destSize), sizeof(destSize));
+		file.write(reinterpret_cast<const char*>(compressedData.data()), destSize);
+
+		file.write(REPLAY_ARRAY_TAIL, std::strlen(REPLAY_ARRAY_TAIL));
 	}).detach();
 }
 
@@ -157,33 +184,52 @@ bool CSurfReplayPlugin::ReadReplayFile(const std::string_view path, ReplayArray_
 
 	if (sHead != std::string(REPLAY_ARRAY_HEAD)) {
 		LOG::Error("Failed to read replay file: %s, Reason: array head not match!", path.data());
-		file.close();
 		return false;
 	}
 
-	auto iFrameLen = header.info.framelength;
-	out.reserve(iFrameLen);
+	uLongf compressed_size = 0;
+	file.read(reinterpret_cast<char*>(&compressed_size), sizeof(compressed_size));
 
-	for (size_t i = 0; i < iFrameLen; i++) {
+	std::vector<Bytef> compressed_data(compressed_size);
+	file.read(reinterpret_cast<char*>(compressed_data.data()), compressed_size);
+
+	auto iFrameLen = header.info.framelength;
+	uLongf decompressed_size = static_cast<uLongf>(iFrameLen * REPLAY_FRAME_SIZE);
+	std::vector<Bytef> decompressed_data(decompressed_size);
+	int ret = uncompress(decompressed_data.data(), &decompressed_size, compressed_data.data(), compressed_size);
+	if (ret != Z_OK) {
+		LOG::Error("Failed to read replay file: %s, Reason: zlib uncompress error", path.data());
+		return false;
+	}
+
+	out.reserve(iFrameLen);
+	for (size_t i = 0, offset = 0; i < iFrameLen; i++) {
 		replay_frame_data_t frame;
 
 		frame.ang.z = 0;
-		file.read(reinterpret_cast<char*>(&frame.ang), sizeof(Vector2D));
-		file.read(reinterpret_cast<char*>(&frame.pos), sizeof(frame.pos));
-		file.read(reinterpret_cast<char*>(&frame.flags), sizeof(frame.flags));
-		file.read(reinterpret_cast<char*>(&frame.mt), sizeof(frame.mt));
+		std::memcpy(&frame.ang, decompressed_data.data() + offset, sizeof(Vector2D));
+		offset += sizeof(Vector2D);
 
-		replay_packed_button_t packData {};
-		file.read(reinterpret_cast<char*>(&packData), sizeof(packData));
-		frame.buttons = packData.Unpack();
+		std::memcpy(&frame.pos, decompressed_data.data() + offset, sizeof(frame.pos));
+		offset += sizeof(frame.pos);
+
+		std::memcpy(&frame.flags, decompressed_data.data() + offset, sizeof(frame.flags));
+		offset += sizeof(frame.flags);
+
+		std::memcpy(&frame.mt, decompressed_data.data() + offset, sizeof(frame.mt));
+		offset += sizeof(frame.mt);
+
+		replay_packed_button_t packButton;
+		std::memcpy(&packButton, decompressed_data.data() + offset, sizeof(packButton));
+		offset += sizeof(packButton);
+
+		frame.buttons = packButton.Unpack();
 
 		out.emplace_back(frame);
 	}
 
 	std::string sTail;
 	ReadStreamString(file, sTail);
-
-	file.close();
 
 	return true;
 }

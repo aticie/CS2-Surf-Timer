@@ -37,7 +37,7 @@
 				},
 				"microsoft.com/VisualStudioRemoteSettings/CMake/1.0": {
 					"copySourcesOptions": {
-						"exclusionList": [ ".vs", ".git", "*.ps1", "*.lib", "*.exe", "*.pdb", "*.bat", "*.dll", "out", "x64", "build", "Source2Mod", "artifacts" ]
+						"exclusionList": [ ".vs", ".git", "*.ps1", "*.lib", "*.exe", "*.pdb", "*.bat", "*.dll", "out", "x64", "build", "Source2Mod", "artifacts", "protobuf-3.21.8", "googletest" ]
 					},
 					"sourceDir": "$env{HOME}/.vs"
 				}
