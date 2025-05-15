@@ -6,25 +6,25 @@
 constexpr auto REPLAY_ARRAY_HEAD = "===ARRAY_HEAD===";
 constexpr auto REPLAY_ARRAY_TAIL = "===ARRAY_TAIL===";
 
-struct replay_compress_button_t {
-	u8 attack: 1;
-	u8 jump: 1;
-	u8 duck: 1;
-	u8 use: 1;
-	u8 attack2: 1;
-	u8 reload: 1;
-	u8 speed: 1;
-	u8 inspect: 1;
+struct replay_packed_button_t {
+	u8 attack: 1 {};
+	u8 jump: 1 {};
+	u8 duck: 1 {};
+	u8 use: 1 {};
+	u8 attack2: 1 {};
+	u8 reload: 1 {};
+	u8 speed: 1 {};
+	u8 inspect: 1 {};
 
-	replay_compress_button_t() = default;
+	replay_packed_button_t() = default;
 
-	replay_compress_button_t(u64 button) {
-		Compress(button);
+	replay_packed_button_t(u64 button) {
+		Pack(button);
 	}
 
 	// clang-format off
 
-	void Compress(u64 button) {
+	void Pack(u64 button) {
 		if (button & IN_ATTACK) attack = true;
 		if (button & IN_JUMP) jump = true;
 		if (button & IN_DUCK) duck = true;
@@ -35,7 +35,7 @@ struct replay_compress_button_t {
 		if (button & IN_LOOK_AT_WEAPON) inspect = true;
 	}
 
-	u64 Decompress() const {
+	u64 Unpack() const {
 		u64 button = {};
 		if (attack) button |= IN_ATTACK;
 		if (jump) button |= IN_JUMP;
@@ -132,8 +132,8 @@ void CSurfReplayPlugin::AsyncWriteReplayFile(const replay_run_info_t& info, cons
 			file.write(reinterpret_cast<const char*>(&frame.flags), sizeof(frame.flags));
 			file.write(reinterpret_cast<const char*>(&frame.mt), sizeof(frame.mt));
 
-			replay_compress_button_t compressed_button(frame.buttons);
-			file.write(reinterpret_cast<const char*>(&compressed_button), sizeof(compressed_button));
+			replay_packed_button_t packData(frame.buttons);
+			file.write(reinterpret_cast<const char*>(&packData), sizeof(packData));
 		}
 
 		file.write(REPLAY_ARRAY_TAIL, std::strlen(REPLAY_ARRAY_TAIL));
@@ -173,9 +173,9 @@ bool CSurfReplayPlugin::ReadReplayFile(const std::string_view path, ReplayArray_
 		file.read(reinterpret_cast<char*>(&frame.flags), sizeof(frame.flags));
 		file.read(reinterpret_cast<char*>(&frame.mt), sizeof(frame.mt));
 
-		replay_compress_button_t compressed_button {};
-		file.read(reinterpret_cast<char*>(&compressed_button), sizeof(compressed_button));
-		frame.buttons = compressed_button.Decompress();
+		replay_packed_button_t packData {};
+		file.read(reinterpret_cast<char*>(&packData), sizeof(packData));
+		frame.buttons = packData.Unpack();
 
 		out.emplace_back(frame);
 	}

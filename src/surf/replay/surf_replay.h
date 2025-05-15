@@ -15,7 +15,7 @@ struct replay_run_info_t {
 	TimerTrack_t track;
 	TimerStage_t stage;
 	size_t framelength;
-	// ReplayArray_t frames; // Not POD, write it on where else
+	// ReplayArray_t frames; // Not POD, write it on somewhere else
 };
 
 static_assert(std::is_trivial_v<replay_run_info_t> && std::is_standard_layout_v<replay_run_info_t>);
@@ -52,7 +52,6 @@ public:
 	void OnTimerFinishPost_SaveRecording();
 	void FinishGrabbingPostFrames(bool bStage = false);
 
-	void StartRecord();
 	void DoRecord(CCSPlayerPawn* pawn, const CPlayerButton& buttons, const QAngle& viewAngles);
 	void SaveRecord(bool bStageReplay, ReplayArray_t* out = nullptr);
 	void ClearFrames();
@@ -95,8 +94,8 @@ public:
 	static inline const ReplayArray_t NULL_REPLAY_ARRAY = {};
 
 	bool m_bReplayBot {};
-	TimerStage_t m_iCurrentStage {};
-	TimerTrack_t m_iCurrentTrack {};
+	TimerStage_t m_iCurrentStage = -1;
+	TimerTrack_t m_iCurrentTrack = -1;
 	size_t m_iCurrentTick {};
 };
 
