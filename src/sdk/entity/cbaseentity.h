@@ -105,6 +105,22 @@ public:
 	SCHEMA_FIELD(float, m_flAbsScale);
 	SCHEMA_FIELD(Vector, m_vecAbsOrigin);
 	SCHEMA_FIELD(Vector, m_vRenderOrigin);
+	SCHEMA_FIELD(bool, m_bForceParentToBeNetworked);
+};
+
+class CModelState {
+public:
+	DECLARE_SCHEMA_STRUCT(CModelState);
+
+	SCHEMA_FIELD(CUtlSymbolLarge, m_ModelName);
+	SCHEMA_FIELD(uint64_t, m_MeshGroupMask);
+};
+
+class CSkeletonInstance : public CGameSceneNode {
+public:
+	DECLARE_SCHEMA_CLASS(CSkeletonInstance);
+
+	SCHEMA_FIELD(CModelState, m_modelState);
 };
 
 class CBodyComponent {

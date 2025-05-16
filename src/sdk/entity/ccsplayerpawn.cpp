@@ -11,7 +11,7 @@ Vector CCSPlayerPawnBase::GetEyePosition() {
 	return Vector(absorigin.x, absorigin.y, absorigin.z + cameraService->m_flOldPlayerViewOffsetZ());
 }
 
-CBaseViewModel* CCSPlayerPawnBase::GetCustomViewModel(int vmSlot) {
+CBaseViewModel* CCSPlayerPawnBase::EnsureViewModel(int vmSlot) {
 	CBaseViewModel* pCustomViewModel = m_pViewModelServices()->GetViewModel(vmSlot);
 	if (!pCustomViewModel) {
 		pCustomViewModel = (CBaseViewModel*)MEM::CALL::CreateEntityByName("predicted_viewmodel");

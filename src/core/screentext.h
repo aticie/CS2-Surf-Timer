@@ -2,6 +2,7 @@
 
 #include <pch.h>
 #include <core/playermanager.h>
+#include <movement/movement.h>
 #include <list>
 
 struct ScreenTextManifest_t {
@@ -83,7 +84,7 @@ public:
 	std::list<std::shared_ptr<CScreenText>> m_ScreenTextList;
 };
 
-class CScreenTextControllerManager : CPlayerManager {
+class CScreenTextControllerManager : CPlayerManager, CMovementForward {
 public:
 	CScreenTextControllerManager() {
 		for (int i = 0; i < MAXPLAYERS; i++) {

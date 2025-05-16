@@ -1,5 +1,6 @@
 #include <core/screentext.h>
 #include <core/memory.h>
+#include <core/eventmanager.h>
 
 CScreenTextControllerManager g_ScreenTextControllerManager;
 
@@ -94,7 +95,7 @@ void CScreenText::Display(CBasePlayerController* pController) {
 		return;
 	}
 
-	CBaseViewModel* pViewModel = pPawn->GetCustomViewModel();
+	CBaseViewModel* pViewModel = pPawn->EnsureViewModel();
 	if (!pViewModel) {
 		SDK_ASSERT(false);
 		return;

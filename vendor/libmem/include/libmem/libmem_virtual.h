@@ -34,7 +34,7 @@ namespace vmt {
 	// 模拟真实的虚函数调用流程
 	// 自动处理返回值为非平凡类型的情况
 	// 返回值类型、内存结构必须与虚函数的一致
-	template<typename Ret, typename T, typename... Args>
+	template<typename Ret = void, typename T, typename... Args>
 	inline Ret CallVirtual(uint32_t uIndex, T pClass, Args... args) {
 		auto func_ptr = GetVMethod(uIndex, pClass);
 		if (!func_ptr) {
