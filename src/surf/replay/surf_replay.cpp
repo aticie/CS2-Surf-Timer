@@ -36,7 +36,7 @@ void CSurfReplayPlugin::OnEntitySpawned(CEntityInstance* pEntity) {
 	}
 }
 
-bool CSurfReplayPlugin::OnPlayerRunCmd(CCSPlayerPawn* pPawn, CInButtonState& buttons, float (&vec)[3], QAngle& viewAngles, int& weapon, int& cmdnum, int& tickcount, int& seed, int (&mouse)[2]) {
+bool CSurfReplayPlugin::OnPlayerRunCmd(CCSPlayerPawnBase* pPawn, CInButtonState& buttons, float (&vec)[3], QAngle& viewAngles, int& weapon, int& cmdnum, int& tickcount, int& seed, int (&mouse)[2]) {
 	if (pPawn->IsBot()) {
 		CSurfBot* pBot = SURF::GetBotManager()->ToPlayer(pPawn);
 		if (pBot && pBot->m_pReplayService->m_bReplayBot) {
@@ -47,7 +47,7 @@ bool CSurfReplayPlugin::OnPlayerRunCmd(CCSPlayerPawn* pPawn, CInButtonState& but
 	return true;
 }
 
-void CSurfReplayPlugin::OnPlayerRunCmdPost(CCSPlayerPawn* pPawn, const CInButtonState& buttons, const float (&vec)[3], const QAngle& viewAngles, const int& weapon, const int& cmdnum, const int& tickcount, const int& seed, const int (&mouse)[2]) {
+void CSurfReplayPlugin::OnPlayerRunCmdPost(CCSPlayerPawnBase* pPawn, const CInButtonState& buttons, const float (&vec)[3], const QAngle& viewAngles, const int& weapon, const int& cmdnum, const int& tickcount, const int& seed, const int (&mouse)[2]) {
 	CSurfPlayer* player = SURF::GetPlayerManager()->ToPlayer(pPawn);
 	if (!player) {
 		return;

@@ -102,7 +102,7 @@ void CSurfReplayService::FinishGrabbingPostFrames(bool bStage) {
 	}
 }
 
-void CSurfReplayService::DoRecord(CCSPlayerPawn* pawn, const CPlayerButton& buttons, const QAngle& viewAngles) {
+void CSurfReplayService::DoRecord(CCSPlayerPawnBase* pawn, const CPlayerButton& buttons, const QAngle& viewAngles) {
 	bool bCanRecord = m_bEnabled || m_ExtraStageFrame.bGrabEnd || m_ExtraTrackFrame.bGrabEnd;
 	if (!bCanRecord) {
 		return;

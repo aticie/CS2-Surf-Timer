@@ -1,7 +1,8 @@
 #include "ccsplayercontroller.h"
 
 void CCSPlayerController::ChangeTeam(int iTeam) {
-	CALL_VIRTUAL(void, GAMEDATA::GetOffset("ControllerChangeTeam"), this, iTeam);
+	static auto iOffset = GAMEDATA::GetOffset("ControllerChangeTeam");
+	CALL_VIRTUAL(void, iOffset, this, iTeam);
 }
 
 void CCSPlayerController::SwitchTeam(int iTeam) {
@@ -27,7 +28,8 @@ void CCSPlayerController::Respawn() {
 		SwitchTeam(RandomInt(CS_TEAM_T, CS_TEAM_CT));
 	}
 
-	CALL_VIRTUAL(void, GAMEDATA::GetOffset("ControllerRespawn"), this);
+	static auto iOffset = GAMEDATA::GetOffset("ControllerRespawn");
+	CALL_VIRTUAL(void, iOffset, this);
 }
 
 CBaseEntity* CCSPlayerController::GetObserverTarget() {
@@ -43,7 +45,7 @@ CBaseEntity* CCSPlayerController::GetObserverTarget() {
 
 	auto pObsService = pPawn->m_pObserverServices();
 	auto iObsMode = pObsService->m_iObserverMode();
-	if (iObsMode >= OBS_MODE_CHASE && iObsMode <= OBS_MODE_DIRECTED) {
+	if (iObsMode >= OBS_MODE_IN_EYE && iObsMode <= OBS_MODE_CHASE) {
 		return pObsService->m_hObserverTarget()->Get();
 	}
 

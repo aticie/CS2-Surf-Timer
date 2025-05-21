@@ -3,7 +3,7 @@
 #include <sdk/schema.h>
 #include <sdk/usercmd.h>
 
-enum ObserverMode_t {
+enum ObserverMode_t : uint8 {
 	OBS_MODE_NONE = 0x0,    // not in spectator mode
 	OBS_MODE_FIXED = 0x1,   // view from a fixed camera position
 	OBS_MODE_IN_EYE = 0x2,  // follow a player in first person view
@@ -27,8 +27,8 @@ public:
 	SCHEMA_FIELD_POINTER(CNetworkVarChainer, __m_pChainEntity);
 
 public:
-	CCSPlayerPawn* GetPawn() {
-		return (CCSPlayerPawn*)(__m_pChainEntity()->GetObj());
+	CCSPlayerPawnBase* GetPawn() {
+		return (CCSPlayerPawnBase*)(__m_pChainEntity()->GetObj());
 	}
 };
 

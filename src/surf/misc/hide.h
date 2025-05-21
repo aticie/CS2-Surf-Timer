@@ -4,7 +4,7 @@
 
 using CEdictBitVec = CBitVec<MAX_EDICTS>;
 
-class CHidePlugin : CCoreForward {
+class CHidePlugin : CFeatureForward, CCoreForward {
 private:
 	virtual void OnPluginStart() override;
 	virtual void OnClientSendSnapshotBefore(CServerSideClient* pClient) override;

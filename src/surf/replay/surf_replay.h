@@ -80,7 +80,7 @@ public:
 	void OnTimerFinishPost_SaveRecording();
 	void FinishGrabbingPostFrames(bool bStage = false);
 
-	void DoRecord(CCSPlayerPawn* pawn, const CPlayerButton& buttons, const QAngle& viewAngles);
+	void DoRecord(CCSPlayerPawnBase* pawn, const CPlayerButton& buttons, const QAngle& viewAngles);
 	void SaveRecord(bool bStageReplay, ReplayArray_t* out = nullptr);
 	void ClearFrames();
 
@@ -104,7 +104,7 @@ public:
 
 public:
 	void Init();
-	void DoPlayback(CCSPlayerPawn* pPawn, CInButtonState& buttons, QAngle& viewAngles);
+	void DoPlayback(CCSPlayerPawnBase* pPawn, CInButtonState& buttons, QAngle& viewAngles);
 	void StartReplay(const replay_bot_info_t* info = nullptr);
 	void FinishReplay(const replay_bot_info_t* info = nullptr);
 
@@ -133,8 +133,8 @@ private:
 	virtual void OnClientPutInServer(ISource2GameClients* pClient, CPlayerSlot slot, char const* pszName, int type, uint64 xuid) override;
 	virtual void OnEntitySpawned(CEntityInstance* pEntity) override;
 
-	virtual bool OnPlayerRunCmd(CCSPlayerPawn* pPawn, CInButtonState& buttons, float (&vec)[3], QAngle& viewAngles, int& weapon, int& cmdnum, int& tickcount, int& seed, int (&mouse)[2]) override;
-	virtual void OnPlayerRunCmdPost(CCSPlayerPawn* pPawn, const CInButtonState& buttons, const float (&vec)[3], const QAngle& viewAngles, const int& weapon, const int& cmdnum, const int& tickcount, const int& seed, const int (&mouse)[2]) override;
+	virtual bool OnPlayerRunCmd(CCSPlayerPawnBase* pPawn, CInButtonState& buttons, float (&vec)[3], QAngle& viewAngles, int& weapon, int& cmdnum, int& tickcount, int& seed, int (&mouse)[2]) override;
+	virtual void OnPlayerRunCmdPost(CCSPlayerPawnBase* pPawn, const CInButtonState& buttons, const float (&vec)[3], const QAngle& viewAngles, const int& weapon, const int& cmdnum, const int& tickcount, const int& seed, const int (&mouse)[2]) override;
 
 	virtual bool OnEnterZone(const ZoneCache_t& zone, CSurfPlayer* pPlayer) override;
 	virtual bool OnStayZone(const ZoneCache_t& zone, CSurfPlayer* pPlayer) override;

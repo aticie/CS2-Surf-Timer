@@ -84,19 +84,24 @@ public:
 
 	virtual void OnPostEventAbstract(IGameEventSystem* pEventSystem, CSplitScreenSlot nSlot, int nClientCount, const uint64* clients, INetworkMessageInternal* pEvent, const CNetMessage* pData) {}
 
+	virtual void OnResourcePrecache(IEntityResourceManifest* pResourceManifest) {};
+};
+
+class CFeatureForward : public CBaseForward<CFeatureForward> {
+public:
 	virtual bool OnWeaponDrop(CCSPlayer_WeaponServices* pService, CBasePlayerWeapon* pWeapon, int& iDropType, Vector* targetPos) {
 		return true;
 	}
 
 	virtual void OnWeaponDropPost(CCSPlayer_WeaponServices* pService, CBasePlayerWeapon* pWeapon, const int& iDropType, const Vector* targetPos) {}
 
-	virtual void OnResourcePrecache(IEntityResourceManifest* pResourceManifest) {};
-
-	virtual bool OnTakeDamage(CCSPlayerPawn* pVictim, CTakeDamageInfo* pInfo) {
+	virtual bool OnTakeDamage(CCSPlayerPawnBase* pVictim, CTakeDamageInfo* pInfo) {
 		return true;
 	}
 
-	virtual void OnTakeDamagePost(CCSPlayerPawn* pVictim, CTakeDamageInfo* pInfo) {}
+	virtual void OnTakeDamagePost(CCSPlayerPawnBase* pVictim, CTakeDamageInfo* pInfo) {}
 
 	virtual void OnClientSendSnapshotBefore(CServerSideClient* pClient) {}
+
+	virtual void OnSetObserverTargetPost(CPlayer_ObserverServices* pService, CBaseEntity* pEnt) {}
 };

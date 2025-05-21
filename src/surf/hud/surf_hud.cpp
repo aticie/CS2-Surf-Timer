@@ -56,7 +56,7 @@ void CSurfHudPlugin::OnPluginStart() {
 	EVENT::HookEvent("player_spawn", OnPlayerSpawn);
 }
 
-void CSurfHudPlugin::OnPlayerRunCmdPost(CCSPlayerPawn* pPawn, const CInButtonState& buttons, const float (&vec)[3], const QAngle& viewAngles, const int& weapon, const int& cmdnum, const int& tickcount, const int& seed, const int (&mouse)[2]) {
+void CSurfHudPlugin::OnPlayerRunCmdPost(CCSPlayerPawnBase* pPawn, const CInButtonState& buttons, const float (&vec)[3], const QAngle& viewAngles, const int& weapon, const int& cmdnum, const int& tickcount, const int& seed, const int (&mouse)[2]) {
 	CSurfPlayer* pSurfPlayer = SURF::GetPlayerManager()->ToPlayer(pPawn);
 	if (!pSurfPlayer) {
 		return;

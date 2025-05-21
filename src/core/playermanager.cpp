@@ -212,11 +212,11 @@ void CPlayerManager::OnClientDisconnect(ISource2GameClients* pClient, CPlayerSlo
 	}
 }
 
-void CPlayerManager::OnClientConnected(ISource2GameClients* pClient, CPlayerSlot slot, const char* pszName, uint64 xuid, const char* pszNetworkID, const char* pszAddress, bool bFakePlayer) {
+void CPlayerManager::OnClientPutInServer(ISource2GameClients* pClient, CPlayerSlot slot, char const* pszName, int type, uint64 xuid) {
 	CPlayer* pPlayer = CPlayerManager::ToPlayer(slot);
 	if (pPlayer) {
 		pPlayer->Init(slot.Get());
 		pPlayer->SetUnauthenticatedSteamID(xuid);
-		pPlayer->m_bFakeClient = bFakePlayer;
+		pPlayer->m_bFakeClient = (xuid == 0);
 	}
 }

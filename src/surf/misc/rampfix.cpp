@@ -46,7 +46,7 @@ void CRampfix::OnProcessMovementPost(CCSPlayer_MovementServices* ms, const CMove
 }
 
 bool CRampfix::OnTryPlayerMove(CCSPlayer_MovementServices* ms, CMoveData* mv, Vector* pFirstDest, trace_t* pFirstTrace) {
-	CCSPlayerPawn* pawn = ms->GetPawn();
+	CCSPlayerPawnBase* pawn = ms->GetPawn();
 	CSurfPlayer* player = SURF::GetPlayerManager()->ToPlayer(pawn);
 	if (!player) {
 		return true;
@@ -268,7 +268,7 @@ void CRampfix::OnTryPlayerMovePost(CCSPlayer_MovementServices* ms, const CMoveDa
 }
 
 bool CRampfix::OnCategorizePosition(CCSPlayer_MovementServices* ms, CMoveData* mv, bool bStayOnGround) {
-	CCSPlayerPawn* pawn = ms->GetPawn();
+	CCSPlayerPawnBase* pawn = ms->GetPawn();
 	CSurfPlayer* player = SURF::GetPlayerManager()->ToPlayer(ms);
 	if (!player) {
 		return true;

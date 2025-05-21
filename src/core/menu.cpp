@@ -397,7 +397,7 @@ void CMenuManager::OnPluginStart() {
 	CONCMD::RegConsoleCmd("sm_mma", OnMenuModeChange);
 }
 
-void CMenuManager::OnPlayerRunCmdPost(CCSPlayerPawn* pPawn, const CInButtonState& buttons, const float (&vec)[3], const QAngle& viewAngles, const int& weapon, const int& cmdnum, const int& tickcount, const int& seed, const int (&mouse)[2]) {
+void CMenuManager::OnPlayerRunCmdPost(CCSPlayerPawnBase* pPawn, const CInButtonState& buttons, const float (&vec)[3], const QAngle& viewAngles, const int& weapon, const int& cmdnum, const int& tickcount, const int& seed, const int (&mouse)[2]) {
 	CMenuPlayer* pMenuPlayer = MENU::GetManager()->ToPlayer(pPawn);
 	if (!pMenuPlayer) {
 		SDK_ASSERT(false);

@@ -3,7 +3,7 @@
 #include <pch.h>
 #include <surf/surf_player.h>
 
-class CSurfMiscPlugin : CMovementForward, CCoreForward {
+class CSurfMiscPlugin : CMovementForward, CFeatureForward, CCoreForward {
 private:
 	virtual void OnPluginStart() override;
 	virtual void OnActivateServer(CNetworkGameServerBase* pGameServer) override;
@@ -11,7 +11,7 @@ private:
 	virtual void OnEntitySpawned(CEntityInstance* pEntity) override;
 	virtual void OnClientDisconnect(ISource2GameClients* pClient, CPlayerSlot slot, ENetworkDisconnectionReason reason, const char* pszName, uint64 xuid, const char* pszNetworkID) override;
 	virtual bool OnProcessMovement(CCSPlayer_MovementServices* ms, CMoveData* mv) override;
-	virtual bool OnTakeDamage(CCSPlayerPawn* pVictim, CTakeDamageInfo* info) override;
+	virtual bool OnTakeDamage(CCSPlayerPawnBase* pVictim, CTakeDamageInfo* info) override;
 	virtual void OnResourcePrecache(IEntityResourceManifest* pResourceManifest) override;
 
 private:

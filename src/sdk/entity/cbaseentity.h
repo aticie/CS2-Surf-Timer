@@ -58,6 +58,16 @@ enum PointWorldTextReorientMode_t : uint32_t {
 	POINT_WORLD_TEXT_REORIENT_AROUND_UP = 0x1,
 };
 
+enum HierarchyType_t : uint8_t
+{
+	HIERARCHY_NONE = 0x0,
+	HIERARCHY_BONE_MERGE = 0x1,
+	HIERARCHY_ATTACHMENT = 0x2,
+	HIERARCHY_ABSORIGIN = 0x3,
+	HIERARCHY_BONE = 0x4,
+	HIERARCHY_TYPE_COUNT = 0x5,
+};
+
 class CCollisionProperty;
 
 class CNetworkedQuantizedFloat {
@@ -94,18 +104,21 @@ class CGameSceneNode {
 public:
 	DECLARE_SCHEMA_CLASS(CGameSceneNode);
 
-	SCHEMA_FIELD(CEntityInstance*, m_pOwner);
-	SCHEMA_FIELD(CGameSceneNode*, m_pParent);
-	SCHEMA_FIELD(CGameSceneNode*, m_pChild);
-	SCHEMA_FIELD(CGameSceneNode*, m_pNextSibling);
-	SCHEMA_FIELD(Vector, m_vecOrigin);
-	SCHEMA_FIELD(QAngle, m_angRotation);
-	SCHEMA_FIELD(QAngle, m_angAbsRotation);
-	SCHEMA_FIELD(float, m_flScale);
-	SCHEMA_FIELD(float, m_flAbsScale);
-	SCHEMA_FIELD(Vector, m_vecAbsOrigin);
-	SCHEMA_FIELD(Vector, m_vRenderOrigin);
-	SCHEMA_FIELD(bool, m_bForceParentToBeNetworked);
+	SCHEMA_FIELD_SKELETON(CTransform, m_nodeToWorld);
+	SCHEMA_FIELD_SKELETON(CEntityInstance*, m_pOwner);
+	SCHEMA_FIELD_SKELETON(CGameSceneNode*, m_pParent);
+	SCHEMA_FIELD_SKELETON(CGameSceneNode*, m_pChild);
+	SCHEMA_FIELD_SKELETON(CGameSceneNode*, m_pNextSibling);
+	SCHEMA_FIELD_SKELETON(Vector, m_vecOrigin);
+	SCHEMA_FIELD_SKELETON(QAngle, m_angRotation);
+	SCHEMA_FIELD_SKELETON(QAngle, m_angAbsRotation);
+	SCHEMA_FIELD_SKELETON(float, m_flScale);
+	SCHEMA_FIELD_SKELETON(float, m_flAbsScale);
+	SCHEMA_FIELD_SKELETON(Vector, m_vecAbsOrigin);
+	SCHEMA_FIELD_SKELETON(Vector, m_vRenderOrigin);
+	SCHEMA_FIELD_SKELETON(bool, m_bForceParentToBeNetworked);
+	SCHEMA_FIELD_SKELETON(uint8_t, m_nHierarchicalDepth);
+	SCHEMA_FIELD_SKELETON(HierarchyType_t, m_nHierarchyType);
 };
 
 class CModelState {
@@ -120,7 +133,7 @@ class CSkeletonInstance : public CGameSceneNode {
 public:
 	DECLARE_SCHEMA_CLASS(CSkeletonInstance);
 
-	SCHEMA_FIELD(CModelState, m_modelState);
+	SCHEMA_FIELD_SKELETON(CModelState, m_modelState);
 };
 
 class CBodyComponent {
@@ -166,17 +179,20 @@ public:
 	SCHEMA_FIELD(float, m_flWaterLevel);
 	SCHEMA_FIELD(int, m_fEffects);
 	SCHEMA_FIELD(CHandle<CBaseEntity>, m_hOwnerEntity);
+	SCHEMA_FIELD(QAngle, m_vecAngVelocity);
 
 	int entindex() {
 		return m_pEntity->m_EHandle.GetEntryIndex();
 	}
 
 	bool IsPawn() {
-		return CALL_VIRTUAL(bool, GAMEDATA::GetOffset("IsEntityPawn"), this);
+		static auto iOffset = GAMEDATA::GetOffset("IsEntityPawn");
+		return CALL_VIRTUAL(bool, iOffset, this);
 	}
 
 	bool IsController() {
-		return CALL_VIRTUAL(bool, GAMEDATA::GetOffset("IsEntityController"), this);
+		static auto iOffset = GAMEDATA::GetOffset("IsEntityController");
+		return CALL_VIRTUAL(bool, iOffset, this);
 	}
 
 	bool IsAlive() {
@@ -189,7 +205,8 @@ public:
 	}
 
 	void CollisionRulesChanged() {
-		CALL_VIRTUAL(void, GAMEDATA::GetOffset("CollisionRulesChanged"), this);
+		static auto iOffset = GAMEDATA::GetOffset("CollisionRulesChanged");
+		CALL_VIRTUAL(void, iOffset, this);
 	}
 
 	int GetTeam() {
@@ -197,19 +214,23 @@ public:
 	}
 
 	void StartTouch(CBaseEntity* pOther) {
-		CALL_VIRTUAL(bool, GAMEDATA::GetOffset("StartTouch"), this, pOther);
+		static auto iOffset = GAMEDATA::GetOffset("StartTouch");
+		CALL_VIRTUAL(bool, iOffset, this, pOther);
 	}
 
 	void Touch(CBaseEntity* pOther) {
-		CALL_VIRTUAL(bool, GAMEDATA::GetOffset("Touch"), this, pOther);
+		static auto iOffset = GAMEDATA::GetOffset("Touch");
+		CALL_VIRTUAL(bool, iOffset, this, pOther);
 	}
 
 	void EndTouch(CBaseEntity* pOther) {
-		CALL_VIRTUAL(bool, GAMEDATA::GetOffset("EndTouch"), this, pOther);
+		static auto iOffset = GAMEDATA::GetOffset("EndTouch");
+		CALL_VIRTUAL(bool, iOffset, this, pOther);
 	}
 
 	void Teleport(const Vector* newPosition, const QAngle* newAngles, const Vector* newVelocity) {
-		CALL_VIRTUAL(bool, GAMEDATA::GetOffset("Teleport"), this, newPosition, newAngles, newVelocity);
+		static auto iOffset = GAMEDATA::GetOffset("Teleport");
+		CALL_VIRTUAL(bool, iOffset, this, newPosition, newAngles, newVelocity);
 	}
 
 	void Kill() {
@@ -222,9 +243,18 @@ public:
 	void SetParent(CBaseEntity* pParent);
 	void SetName(const char* pszName, bool bCheckDuplicate = false);
 
-	Vector& GetAbsOrigin();
-	Vector& GetOrigin();
-	QAngle& GetAbsAngles();
+	const Vector& GetAbsOrigin();
+	const Vector& GetOrigin();
+	const QAngle& GetAbsAngles();
+};
+
+class CNetworkViewOffsetVector {
+public:
+	DECLARE_SCHEMA_STRUCT(CNetworkViewOffsetVector);
+	
+	SCHEMA_FIELD(float, m_vecX);
+	SCHEMA_FIELD(float, m_vecY);
+	SCHEMA_FIELD(float, m_vecZ);
 };
 
 class CBaseModelEntity : public CBaseEntity {
@@ -235,6 +265,7 @@ public:
 	SCHEMA_FIELD(Color, m_clrRender);
 	SCHEMA_FIELD(RenderMode_t, m_nRenderMode);
 	SCHEMA_FIELD(float, m_fadeMinDist);
+	SCHEMA_FIELD(CNetworkViewOffsetVector, m_vecViewOffset);
 };
 
 class CBaseViewModel : public CBaseModelEntity {

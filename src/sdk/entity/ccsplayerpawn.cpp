@@ -12,15 +12,19 @@ Vector CCSPlayerPawnBase::GetEyePosition() {
 }
 
 CBaseViewModel* CCSPlayerPawnBase::EnsureViewModel(int vmSlot) {
+	// Setting viewmodel to observer can cause server crash!
+	if (IsObserver()) {
+		return nullptr;
+	}
+
 	CBaseViewModel* pCustomViewModel = m_pViewModelServices()->GetViewModel(vmSlot);
 	if (!pCustomViewModel) {
 		pCustomViewModel = (CBaseViewModel*)MEM::CALL::CreateEntityByName("predicted_viewmodel");
 		pCustomViewModel->DispatchSpawn();
 		m_pViewModelServices()->SetViewModel(vmSlot, pCustomViewModel);
-		pCustomViewModel->m_hOwnerEntity(this->GetRefEHandle());
+		pCustomViewModel->m_hOwnerEntity().Set(this);
 	} else {
-		static QAngle zeroAng;
-		pCustomViewModel->Teleport(nullptr, &zeroAng, nullptr);
+		pCustomViewModel->Teleport(nullptr, &vec3_angle, nullptr);
 	}
 
 	return pCustomViewModel;

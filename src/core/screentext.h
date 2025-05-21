@@ -39,10 +39,11 @@ public:
 
 	bool IsRendering();
 
-	// FIXME: dead, spectator not supported yet.
 	void Display(CBasePlayerController* pController);
 
+	void UpdateRelation(CCSPlayerPawnBase* pPawn);
 	void UpdatePos();
+	void UpdateTransmit(CBasePlayerController* pOwner);
 
 	void Enable() {
 		m_hScreenEnt->Enable();
@@ -57,7 +58,8 @@ public:
 	}
 
 public:
-	static Vector GetRelativeOrigin(const Vector& eyePosition, float distanceToTarget = 6.7f);
+	static Vector GetRelativeVMOrigin(const Vector& eyePosition, float distanceToTarget = 6.7f);
+	static Vector GetRelativePawnOrigin(const Vector& eyePosition, const QAngle& eyeAngles, float distanceToTarget = 7.09f);
 
 public:
 	Vector2D m_vecPos;
@@ -84,7 +86,7 @@ public:
 	std::list<std::shared_ptr<CScreenText>> m_ScreenTextList;
 };
 
-class CScreenTextControllerManager : CPlayerManager, CMovementForward {
+class CScreenTextControllerManager : CPlayerManager, CMovementForward, CFeatureForward {
 public:
 	CScreenTextControllerManager() {
 		for (int i = 0; i < MAXPLAYERS; i++) {
@@ -99,6 +101,11 @@ public:
 	virtual CScreenTextController* ToPlayer(CBasePlayerPawn* pawn) const override {
 		return static_cast<CScreenTextController*>(CPlayerManager::ToPlayer(pawn));
 	}
+
+private:
+	virtual void OnPluginStart() override;
+	virtual void OnPlayerRunCmdPost(CCSPlayerPawnBase* pPawn, const CInButtonState& buttons, const float (&vec)[3], const QAngle& viewAngles, const int& weapon, const int& cmdnum, const int& tickcount, const int& seed, const int (&mouse)[2]) override;
+	virtual void OnSetObserverTargetPost(CPlayer_ObserverServices* pService, CBaseEntity* pEnt) override;
 };
 
 namespace VGUI {

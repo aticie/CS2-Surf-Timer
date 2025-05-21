@@ -98,7 +98,7 @@ bool CSurfMiscPlugin::OnProcessMovement(CCSPlayer_MovementServices* ms, CMoveDat
 	return true;
 }
 
-bool CSurfMiscPlugin::OnTakeDamage(CCSPlayerPawn* pVictim, CTakeDamageInfo* info) {
+bool CSurfMiscPlugin::OnTakeDamage(CCSPlayerPawnBase* pVictim, CTakeDamageInfo* info) {
 	return false;
 }
 

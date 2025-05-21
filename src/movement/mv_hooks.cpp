@@ -8,7 +8,7 @@
 #include <utils/utils.h>
 
 static void* Hook_OnMovementServicesRunCmds(CPlayer_MovementServices* pMovementServices, CUserCmd* pUserCmd) {
-	CCSPlayerPawn* pawn = pMovementServices->GetPawn();
+	CCSPlayerPawnBase* pawn = pMovementServices->GetPawn();
 	if (!pawn) {
 		return MEM::SDKCall<void*>(MOVEMENT::TRAMPOLINE::g_fnMovementServicesRunCmds, pMovementServices, pUserCmd);
 	}
@@ -156,7 +156,12 @@ static void Hook_OnJump(CCSPlayer_MovementServices* ms, CMoveData* mv) {
 	}
 
 	Vector oldOutWishVel = mv->m_outWishVel;
-	MoveType_t oldMoveType = player->GetPlayerPawn()->m_MoveType();
+	auto pPawn = player->GetPlayerPawn();
+	if (!pPawn) {
+		return;
+	}
+
+	MoveType_t oldMoveType = pPawn->m_MoveType();
 	if (mv->m_outWishVel != oldOutWishVel) {
 		player->RegisterTakeoff(true);
 		FORWARD_POST(CMovementForward, OnStopTouchGround, player);

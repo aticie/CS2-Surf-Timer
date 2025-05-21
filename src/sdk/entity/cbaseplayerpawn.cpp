@@ -3,7 +3,8 @@
 
 void CBasePlayerPawn::CommitSuicide(bool bExplode, bool bForce) {
 	this->m_bTakesDamage(true);
-	CALL_VIRTUAL(void, GAMEDATA::GetOffset("CommitSuicide"), this, bExplode, bForce);
+	static auto iOffset = GAMEDATA::GetOffset("CommitSuicide");
+	CALL_VIRTUAL(void, iOffset, this, bExplode, bForce);
 	this->m_bTakesDamage(false);
 }
 

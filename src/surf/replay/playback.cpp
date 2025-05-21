@@ -15,7 +15,7 @@ void CSurfBotReplayService::Init() {
 	m_info.iStage = -1;
 }
 
-void CSurfBotReplayService::DoPlayback(CCSPlayerPawn* pBotPawn, CInButtonState& buttons, QAngle& viewAngles) {
+void CSurfBotReplayService::DoPlayback(CCSPlayerPawnBase* pBotPawn, CInButtonState& buttons, QAngle& viewAngles) {
 	auto& aFrames = const_cast<ReplayArray_t&>(NULL_REPLAY_ARRAY);
 	if (IsTrackBot()) {
 		aFrames = SURF::ReplayPlugin()->m_aTrackReplays.at(m_info.iTrack);

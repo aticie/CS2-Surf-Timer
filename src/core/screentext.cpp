@@ -1,6 +1,8 @@
 #include <core/screentext.h>
 #include <core/memory.h>
 #include <core/eventmanager.h>
+#include <core/concmdmanager.h>
+#include <utils/ctimer.h>
 
 CScreenTextControllerManager g_ScreenTextControllerManager;
 
@@ -88,27 +90,53 @@ void CScreenText::Display(CBasePlayerController* pController) {
 		return;
 	}
 
-	// FIXME: check if pawn is observer
 	CCSPlayerPawnBase* pPawn = dynamic_cast<CCSPlayerPawnBase*>(pController->GetCurrentPawn());
 	if (!pPawn) {
 		SDK_ASSERT(false);
 		return;
 	}
 
-	CBaseViewModel* pViewModel = pPawn->EnsureViewModel();
-	if (!pViewModel) {
+	pText->Enable();
+
+	UpdateTransmit(pController);
+	UpdateRelation(pPawn);
+	UpdatePos();
+}
+
+void CScreenText::UpdateRelation(CCSPlayerPawnBase* pPawn) {
+	if (!pPawn) {
+		return;
+	}
+
+	CPointWorldText* pText = this->m_hScreenEnt.Get();
+	if (!pText) {
 		SDK_ASSERT(false);
 		return;
 	}
 
-	pText->SetParent(pViewModel);
-	pText->m_hOwnerEntity(pViewModel->GetRefEHandle());
+	if (!pPawn->IsObserver()) {
+		CBaseViewModel* pViewModel = pPawn->EnsureViewModel();
+		if (!pViewModel) {
+			SDK_ASSERT(false);
+			return;
+		}
+
+		pText->SetParent(pViewModel);
+		pText->m_hOwnerEntity().Set(pViewModel);
+	} else {
+		CBaseEntity* pTarget = pPawn;
+
+		CPlayer_ObserverServices* pObsService = pPawn->m_pObserverServices();
+		CCSPlayerPawnBase* pObsTarget = dynamic_cast<CCSPlayerPawnBase*>(pObsService->m_hObserverTarget()->Get());
+		if (pObsTarget && pObsService->m_iObserverMode() == OBS_MODE_IN_EYE) {
+			pTarget = pObsTarget->EnsureViewModel();
+		}
+
+		pText->SetParent(pTarget);
+		pText->m_hOwnerEntity().Set(pTarget);
+	}
+
 	m_hOwner.Set(pPawn);
-
-	pText->Enable();
-	SetScreenTextEntityTransmiter(pText, pPawn->GetController());
-
-	UpdatePos();
 }
 
 void CScreenText::UpdatePos() {
@@ -118,26 +146,51 @@ void CScreenText::UpdatePos() {
 		return;
 	}
 
-	CBaseViewModel* pViewModel = (CBaseViewModel*)pText->m_hOwnerEntity().Get();
+	CBaseEntity* pParent = pText->m_hOwnerEntity().Get();
+	const Vector& parentPos = pParent->GetAbsOrigin();
+	Vector textPos;
+	if (dynamic_cast<CBaseViewModel*>(pParent)) {
+		textPos = GetRelativeVMOrigin(parentPos);
+	} else {
+		pParent->Teleport(nullptr, &vec3_angle, nullptr);
+		textPos = GetRelativePawnOrigin(parentPos, vec3_angle);
+	}
 
-	Vector& vmPos = pViewModel->GetAbsOrigin();
-	Vector panelPos = GetRelativeOrigin(vmPos);
+	static QAngle textAng = {0.0f, -90.0f, 90.0f};
 
-	Vector rig;
-	Vector up;
-	static QAngle panelAng = {0.0f, -90.0f, 90.0f};
-	AngleVectors(panelAng, &rig, &up, nullptr);
+	Vector fwd, right;
+	AngleVectors(textAng, &fwd, &right, nullptr);
+	fwd *= m_vecPos.x;
+	right *= m_vecPos.y * -1.0f;
+	textPos += fwd + right;
 
-	rig *= m_vecPos.x;
-	up *= m_vecPos.y * -1.0f;
-
-	panelPos += rig + up;
-	pText->Teleport(&panelPos, &panelAng, nullptr);
+	pText->Teleport(&textPos, &textAng, nullptr);
 }
 
-Vector CScreenText::GetRelativeOrigin(const Vector& eyePosition, float distanceToTarget) {
+void CScreenText::UpdateTransmit(CBasePlayerController* pOwner) {
+	CPointWorldText* pText = this->m_hScreenEnt.Get();
+	if (!pText) {
+		SDK_ASSERT(false);
+		return;
+	}
+
+	SetScreenTextEntityTransmiter(pText, pOwner);
+}
+
+Vector CScreenText::GetRelativeVMOrigin(const Vector& eyePosition, float distanceToTarget) {
 	return Vector(eyePosition.x + distanceToTarget, eyePosition.y, eyePosition.z);
 }
+
+Vector CScreenText::GetRelativePawnOrigin(const Vector& eyePosition, const QAngle& eyeAngles, float distanceToTarget) {
+	double pitch = eyeAngles.x * (M_PI / 180.0);
+	double yaw = eyeAngles.y * (M_PI / 180.0);
+
+	double targetX = eyePosition.x + distanceToTarget * std::cos(pitch) * std::cos(yaw);
+	double targetY = eyePosition.y + distanceToTarget * std::cos(pitch) * std::sin(yaw);
+	double targetZ = eyePosition.z - distanceToTarget * std::sin(pitch);
+
+	return Vector(targetX, targetY, targetZ);
+};
 
 CScreenTextControllerManager* VGUI::GetScreenTextManager() {
 	return &g_ScreenTextControllerManager;
@@ -227,4 +280,81 @@ void VGUI::Cleanup(CBasePlayerController* pController) {
 	}
 
 	pTextController->m_ScreenTextList.clear();
+}
+
+EVENT_CALLBACK_POST(OnPlayerTeam) {
+	auto pController = (CCSPlayerController*)pEvent->GetPlayerController("userid");
+	if (!pController) {
+		return;
+	}
+
+	auto iNewTeam = pEvent->GetInt("team");
+	CHandle<CCSPlayerController> hController = pController->GetRefEHandle();
+
+	UTIL::RequestFrame([hController, iNewTeam]() {
+		CCSPlayerController* pController = hController.Get();
+		if (!pController) {
+			return;
+		}
+
+		CBasePlayerPawn* pPawn = pController->GetCurrentPawn();
+		if (!pPawn) {
+			return;
+		}
+
+		auto pPlayer = VGUI::GetScreenTextManager()->ToPlayer(pController);
+		if (!pPlayer) {
+			return;
+		}
+
+		for (const auto& pScreenText : pPlayer->m_ScreenTextList) {
+			pScreenText->UpdateRelation(dynamic_cast<CCSPlayerPawnBase*>(pPawn));
+			pScreenText->UpdatePos();
+		}
+	});
+}
+
+void CScreenTextControllerManager::OnPluginStart() {
+	EVENT::HookEvent("player_team", ::OnPlayerTeam);
+}
+
+void CScreenTextControllerManager::OnPlayerRunCmdPost(CCSPlayerPawnBase* pPawn, const CInButtonState& buttons, const float (&vec)[3], const QAngle& viewAngles, const int& weapon, const int& cmdnum, const int& tickcount, const int& seed, const int (&mouse)[2]) {
+	if (pPawn->IsObserver()) {
+		auto pNode = pPawn->m_CBodyComponent()->m_pSceneNode();
+		auto pParent = pNode->m_pParent();
+		CGameSceneNode* pChild = pNode->m_pChild();
+		if (pChild) {
+			//  Magically force child update physics every tick!
+			auto& velZ = pPawn->m_vecVelocity().m_vecZ();
+			velZ += 0.6f;
+			pNode->m_angAbsRotation(viewAngles);
+			if (pNode->m_angRotation() != viewAngles) {
+				pNode->m_angRotation(viewAngles);
+			}
+		}
+	}
+}
+
+void CScreenTextControllerManager::OnSetObserverTargetPost(CPlayer_ObserverServices* pService, CBaseEntity* pEnt) {
+	auto iObsMode = pService->m_iObserverMode();
+	if (iObsMode == OBS_MODE_NONE) {
+		return;
+	}
+
+	if (!pEnt && iObsMode == OBS_MODE_IN_EYE) {
+		return;
+	}
+
+	if (iObsMode == OBS_MODE_IN_EYE || iObsMode == OBS_MODE_CHASE) {
+		auto pServicePawn = pService->GetPawn();
+		auto pPlayer = VGUI::GetScreenTextManager()->ToPlayer(pServicePawn);
+		if (!pPlayer) {
+			return;
+		}
+
+		for (const auto& pScreenText : pPlayer->m_ScreenTextList) {
+			pScreenText->UpdateRelation(pServicePawn);
+			pScreenText->UpdatePos();
+		}
+	}
 }
