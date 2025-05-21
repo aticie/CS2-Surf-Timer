@@ -338,7 +338,16 @@ static void Hook_OnClientSendSnapshotBefore(CServerSideClient* pClient, void* pF
 static bool Hook_OnSetObserverTarget(CPlayer_ObserverServices* pService, CBaseEntity* pEnt) {
 	auto ret = MEM::SDKCall<bool>(MEM::TRAMPOLINE::g_fnSetObserverTarget, pService, pEnt);
 
-	FORWARD_POST(CFeatureForward, OnSetObserverTargetPost, pService, pEnt);
+	const auto iObsMode = pService->m_iObserverMode();
+	if (iObsMode == OBS_MODE_NONE) {
+		return ret;
+	}
+
+	if (!pEnt && iObsMode == OBS_MODE_IN_EYE) {
+		return ret;
+	}
+
+	FORWARD_POST(CFeatureForward, OnSetObserverTargetPost, pService, pEnt, iObsMode);
 
 	return ret;
 }

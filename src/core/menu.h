@@ -159,12 +159,13 @@ private:
 
 public:
 	std::deque<std::shared_ptr<CBaseMenu>> m_MenuQueue;
-	uint m_nCurrentPage;
-	uint m_nCurrentItem;
-	bool m_bWSADMenu;
+	uint m_nCurrentPage {};
+	uint m_nCurrentItem {};
+	bool m_bWSADMenu {};
+	bool m_bWSADPref {};
 };
 
-class CMenuManager : CPlayerManager, CMovementForward {
+class CMenuManager : CPlayerManager, CMovementForward, CFeatureForward {
 public:
 	CMenuManager() {
 		for (int i = 0; i < MAXPLAYERS; i++) {
@@ -183,6 +184,7 @@ public:
 private:
 	virtual void OnPluginStart() override;
 	virtual void OnPlayerRunCmdPost(CCSPlayerPawnBase* pPawn, const CInButtonState& buttons, const float (&vec)[3], const QAngle& viewAngles, const int& weapon, const int& cmdnum, const int& tickcount, const int& seed, const int (&mouse)[2]) override;
+	virtual void OnSetObserverTargetPost(CPlayer_ObserverServices* pService, CBaseEntity* pEnt, const ObserverMode_t iObsMode) override;
 };
 
 namespace MENU {

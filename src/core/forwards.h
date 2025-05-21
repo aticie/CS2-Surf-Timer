@@ -103,5 +103,5 @@ public:
 
 	virtual void OnClientSendSnapshotBefore(CServerSideClient* pClient) {}
 
-	virtual void OnSetObserverTargetPost(CPlayer_ObserverServices* pService, CBaseEntity* pEnt) {}
+	virtual void OnSetObserverTargetPost(CPlayer_ObserverServices* pService, CBaseEntity* pEnt, const ObserverMode_t iObsMode) {}
 };

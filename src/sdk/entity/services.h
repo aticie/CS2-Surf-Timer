@@ -36,7 +36,7 @@ class CPlayer_ObserverServices : public CPlayerPawnComponent {
 public:
 	DECLARE_SCHEMA_CLASS(CPlayer_ObserverServices);
 
-	SCHEMA_FIELD(uint8_t, m_iObserverMode);
+	SCHEMA_FIELD(ObserverMode_t, m_iObserverMode);
 	SCHEMA_FIELD_POINTER(CHandle<CBaseEntity>, m_hObserverTarget);
 	SCHEMA_FIELD(ObserverMode_t, m_iObserverLastMode);
 	SCHEMA_FIELD(bool, m_bForcedObserverMode);

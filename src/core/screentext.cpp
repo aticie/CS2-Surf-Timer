@@ -335,16 +335,7 @@ void CScreenTextControllerManager::OnPlayerRunCmdPost(CCSPlayerPawnBase* pPawn, 
 	}
 }
 
-void CScreenTextControllerManager::OnSetObserverTargetPost(CPlayer_ObserverServices* pService, CBaseEntity* pEnt) {
-	auto iObsMode = pService->m_iObserverMode();
-	if (iObsMode == OBS_MODE_NONE) {
-		return;
-	}
-
-	if (!pEnt && iObsMode == OBS_MODE_IN_EYE) {
-		return;
-	}
-
+void CScreenTextControllerManager::OnSetObserverTargetPost(CPlayer_ObserverServices* pService, CBaseEntity* pEnt, const ObserverMode_t iObsMode) {
 	if (iObsMode == OBS_MODE_IN_EYE || iObsMode == OBS_MODE_CHASE) {
 		auto pServicePawn = pService->GetPawn();
 		auto pPlayer = VGUI::GetScreenTextManager()->ToPlayer(pServicePawn);

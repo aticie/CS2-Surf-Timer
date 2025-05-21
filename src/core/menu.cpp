@@ -1,6 +1,7 @@
 #include "menu.h"
 #include <core/memory.h>
 #include <core/concmdmanager.h>
+#include <core/eventmanager.h>
 #include <utils/utils.h>
 #include <sdk/entity/cbaseentity.h>
 
@@ -172,6 +173,7 @@ void CMenuPlayer::ResetMenu(bool bResetMode) {
 
 	if (bResetMode) {
 		m_bWSADMenu = false;
+		m_bWSADPref = false;
 	}
 }
 
@@ -236,9 +238,8 @@ void CMenuPlayer::SelectMenu() {
 void CMenuPlayer::SwitchMode(bool bRedraw) {
 	m_bWSADMenu = !m_bWSADMenu;
 
-	auto& pCurrentMenu = GetCurrentMenu();
-	if (pCurrentMenu && bRedraw) {
-		pCurrentMenu->Display(m_nCurrentPage);
+	if (bRedraw) {
+		Refresh();
 	}
 }
 
@@ -262,7 +263,9 @@ void CMenuPlayer::DisplayPageNext() {
 
 void CMenuPlayer::Refresh() {
 	auto& pCurrentMenu = GetCurrentMenu();
-	pCurrentMenu->Display(m_nCurrentPage);
+	if (pCurrentMenu) {
+		pCurrentMenu->Display(m_nCurrentPage);
+	}
 }
 
 void CMenuPlayer::Exit() {
@@ -384,6 +387,69 @@ CCMD_CALLBACK(OnMenuModeChange) {
 	}
 
 	pMenuPlayer->SwitchMode(true);
+	pMenuPlayer->m_bWSADPref = pMenuPlayer->m_bWSADMenu;
+}
+
+EVENT_CALLBACK_POST(OnPlayerSpawm) {
+	auto pController = (CCSPlayerController*)pEvent->GetPlayerController("userid");
+	if (!pController) {
+		return;
+	}
+
+	CHandle<CCSPlayerController> hController = pController->GetRefEHandle();
+
+	UTIL::RequestFrame([hController]() {
+		CCSPlayerController* pController = hController.Get();
+		if (!pController) {
+			return;
+		}
+
+		if (!pController->m_bPawnIsAlive()) {
+			return;
+		}
+
+		CBasePlayerPawn* pPawn = pController->GetCurrentPawn();
+		if (!pPawn || !pPawn->IsAlive()) {
+			return;
+		}
+
+		CMenuPlayer* pMenuPlayer = MENU::GetManager()->ToPlayer(pPawn);
+		if (!pMenuPlayer) {
+			SDK_ASSERT(false);
+			return;
+		}
+
+		pMenuPlayer->m_bWSADMenu = pMenuPlayer->m_bWSADPref;
+		pMenuPlayer->Refresh();
+	});
+}
+
+EVENT_CALLBACK_POST(OnPlayerTeam) {
+	auto pController = (CCSPlayerController*)pEvent->GetPlayerController("userid");
+	if (!pController) {
+		return;
+	}
+
+	auto iNewTeam = pEvent->GetInt("team");
+	CHandle<CCSPlayerController> hController = pController->GetRefEHandle();
+
+	UTIL::RequestFrame([hController, iNewTeam]() {
+		CCSPlayerController* pController = hController.Get();
+		if (!pController) {
+			return;
+		}
+
+		CMenuPlayer* pMenuPlayer = MENU::GetManager()->ToPlayer(pController);
+		if (!pMenuPlayer) {
+			SDK_ASSERT(false);
+			return;
+		}
+
+		if (iNewTeam == CS_TEAM_SPECTATOR) {
+			pMenuPlayer->m_bWSADMenu = true;
+			pMenuPlayer->Refresh();
+		}
+	});
 }
 
 void CMenuManager::OnPluginStart() {
@@ -395,6 +461,9 @@ void CMenuManager::OnPluginStart() {
 	}
 
 	CONCMD::RegConsoleCmd("sm_mma", OnMenuModeChange);
+
+	EVENT::HookEvent("player_spawn", ::OnPlayerSpawm);
+	EVENT::HookEvent("player_team", ::OnPlayerTeam);
 }
 
 void CMenuManager::OnPlayerRunCmdPost(CCSPlayerPawnBase* pPawn, const CInButtonState& buttons, const float (&vec)[3], const QAngle& viewAngles, const int& weapon, const int& cmdnum, const int& tickcount, const int& seed, const int (&mouse)[2]) {
@@ -422,6 +491,24 @@ void CMenuManager::OnPlayerRunCmdPost(CCSPlayerPawnBase* pPawn, const CInButtonS
 		pMenuPlayer->SelectMenu();
 	} else if (buttons.Pressed(IN_SPEED)) {
 		pMenuPlayer->Exit();
+	}
+}
+
+void CMenuManager::OnSetObserverTargetPost(CPlayer_ObserverServices* pService, CBaseEntity* pEnt, const ObserverMode_t iObsMode) {
+	if (iObsMode == OBS_MODE_IN_EYE || iObsMode == OBS_MODE_CHASE) {
+		auto pController = (CCSPlayerController*)pService->GetPawn()->GetController();
+		if (!pController) {
+			return;
+		}
+
+		CMenuPlayer* pMenuPlayer = MENU::GetManager()->ToPlayer(pController);
+		if (!pMenuPlayer) {
+			SDK_ASSERT(false);
+			return;
+		}
+
+		pMenuPlayer->m_bWSADMenu = true;
+		pMenuPlayer->Refresh();
 	}
 }
 
