@@ -58,8 +58,7 @@ enum PointWorldTextReorientMode_t : uint32_t {
 	POINT_WORLD_TEXT_REORIENT_AROUND_UP = 0x1,
 };
 
-enum HierarchyType_t : uint8_t
-{
+enum HierarchyType_t : uint8_t {
 	HIERARCHY_NONE = 0x0,
 	HIERARCHY_BONE_MERGE = 0x1,
 	HIERARCHY_ATTACHMENT = 0x2,
@@ -251,7 +250,7 @@ public:
 class CNetworkViewOffsetVector {
 public:
 	DECLARE_SCHEMA_STRUCT(CNetworkViewOffsetVector);
-	
+
 	SCHEMA_FIELD(float, m_vecX);
 	SCHEMA_FIELD(float, m_vecY);
 	SCHEMA_FIELD(float, m_vecZ);

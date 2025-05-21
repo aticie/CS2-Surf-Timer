@@ -6,8 +6,7 @@ class CCSPlayer_ViewModelServices;
 class CCSBot;
 class CCSPlayerController;
 
-enum class CSPlayerState : uint32_t
-{
+enum class CSPlayerState : uint32_t {
 	STATE_ACTIVE = 0x0,
 	STATE_WELCOME = 0x1,
 	STATE_PICKINGTEAM = 0x2,
