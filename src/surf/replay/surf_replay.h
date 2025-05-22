@@ -121,8 +121,6 @@ public:
 	}
 
 public:
-	static inline const ReplayArray_t NULL_REPLAY_ARRAY = {};
-
 	bool m_bReplayBot {};
 	replay_bot_info_t m_info {};
 };

@@ -16,14 +16,18 @@ void CSurfBotReplayService::Init() {
 }
 
 void CSurfBotReplayService::DoPlayback(CCSPlayerPawnBase* pBotPawn, CInButtonState& buttons, QAngle& viewAngles) {
-	auto& aFrames = const_cast<ReplayArray_t&>(NULL_REPLAY_ARRAY);
+	ReplayArray_t* pFrames = nullptr;
 	if (IsTrackBot()) {
-		aFrames = SURF::ReplayPlugin()->m_aTrackReplays.at(m_info.iTrack);
+		pFrames = &SURF::ReplayPlugin()->m_aTrackReplays.at(m_info.iTrack);
 	} else if (IsStageBot()) {
-		aFrames = SURF::ReplayPlugin()->m_aStageReplays.at(m_info.iStage);
+		pFrames = &SURF::ReplayPlugin()->m_aStageReplays.at(m_info.iStage);
 	}
 
-	size_t iFrameSize = aFrames.size();
+	if (!pFrames) {
+		return;
+	}
+
+	size_t iFrameSize = pFrames->size();
 	if (!iFrameSize) {
 		return;
 	}
@@ -60,7 +64,7 @@ void CSurfBotReplayService::DoPlayback(CCSPlayerPawnBase* pBotPawn, CInButtonSta
 		return;
 	}
 
-	auto& frame = aFrames.at(m_info.iTick);
+	auto& frame = pFrames->at(m_info.iTick);
 	viewAngles = frame.ang;
 
 	auto botFlags = pBotPawn->m_fFlags();
