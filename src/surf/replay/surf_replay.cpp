@@ -20,6 +20,12 @@ void CSurfReplayPlugin::OnPluginStart() {
 	HookEvents();
 }
 
+void CSurfReplayPlugin::OnStartupServer(INetworkServerService* pServerService, const GameSessionConfiguration_t& config) {
+	m_aTrackReplays = {};
+	m_aStageReplays = {};
+	m_iLatestBot = -1;
+}
+
 void CSurfReplayPlugin::OnClientPutInServer(ISource2GameClients* pClient, CPlayerSlot slot, char const* pszName, int type, uint64 xuid) {
 	if (!xuid) {
 		m_iLatestBot = slot;

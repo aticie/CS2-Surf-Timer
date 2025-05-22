@@ -128,6 +128,7 @@ public:
 class CSurfReplayPlugin : CSurfForward, CMovementForward, CCoreForward {
 private:
 	virtual void OnPluginStart() override;
+	virtual void OnStartupServer(INetworkServerService* pServerService, const GameSessionConfiguration_t& config) override;
 	virtual void OnClientPutInServer(ISource2GameClients* pClient, CPlayerSlot slot, char const* pszName, int type, uint64 xuid) override;
 	virtual void OnEntitySpawned(CEntityInstance* pEntity) override;
 
@@ -155,8 +156,8 @@ public:
 	ConVarRefAbstract* m_cvarStagePostRunTime;
 	ConVarRefAbstract* m_cvarPreRunAlways;
 
-	std::array<ReplayArray_t, SURF_MAX_TRACK> m_aTrackReplays;
-	std::array<ReplayArray_t, SURF_MAX_STAGE> m_aStageReplays;
+	std::array<ReplayArray_t, SURF_MAX_TRACK> m_aTrackReplays {};
+	std::array<ReplayArray_t, SURF_MAX_STAGE> m_aStageReplays {};
 
 private:
 	CPlayerSlot m_iLatestBot = -1;
