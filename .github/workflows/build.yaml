@@ -50,7 +50,7 @@ jobs:
 
   build-linux:
     name: Linux
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v4
@@ -67,7 +67,7 @@ jobs:
 
       - name: Build with CMake
         run: |
-          cmake -G Ninja -B build -S . -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER="clang-15" -DCMAKE_CXX_COMPILER="clang++-15"
+          cmake -G Ninja -B build -S . -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER="clang" -DCMAKE_CXX_COMPILER="clang++"
           cmake --build build
 
       # - name: Archive build

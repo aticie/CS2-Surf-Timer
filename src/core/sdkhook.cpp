@@ -1,23 +1,23 @@
 #include "sdkhook.h"
 #include <libmem/libmem_helper.h>
 
+#include <unordered_set>
+#include <utility>
+#include <list>
+
 namespace SDKHOOK {
 	template<SDKHookType T>
 	void InstantiateHookType() {
 		using PreFunc = bool (*)(CBaseEntity*, typename SDKHookBindings<T>::Pre);
 		using PostFunc = bool (*)(CBaseEntity*, typename SDKHookBindings<T>::Post);
 
-		PreFunc pre_ptr = &SDKHOOK::HookEntity<T>;
-		PostFunc post_ptr = &SDKHOOK::HookEntity<T>;
-
-		(void)pre_ptr;
-		(void)post_ptr;
+		volatile PreFunc pre_ptr = static_cast<PreFunc>(&SDKHOOK::HookEntity<T>);
+		volatile PostFunc post_ptr = static_cast<PostFunc>(&SDKHOOK::HookEntity<T>);
 	}
 
 	template<int... Is>
 	void ForceInstantiation(std::integer_sequence<int, Is...>) {
 		int dummy[] = {(InstantiateHookType<static_cast<SDKHookType>(Is)>(), 0)...};
-		(void)dummy;
 	}
 
 	static auto HookInstantiator = (ForceInstantiation(std::make_integer_sequence<int, SDKHookType::MAX_TYPE> {}), 0);
