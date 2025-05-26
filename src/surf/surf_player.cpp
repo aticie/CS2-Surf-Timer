@@ -93,7 +93,7 @@ void CSurfPlayerManager::OnEntitySpawned(CEntityInstance* pEntity) {
 	auto pszClassname = pEntity->GetClassname();
 	if (!V_stricmp(pszClassname, "player")) {
 		SDKHOOK::HookEntity<SDKHook_Teleport>((CBaseEntity*)pEntity, Hook_OnPlayerTeleport);
-		SDKHOOK::HookEntity<SDKHook_TeleportPost>((CBaseEntity*)pEntity, Hook_OnPlayerTeleportPost);
+		SDKHOOK::HookEntity<SDKHook_Teleport>((CBaseEntity*)pEntity, Hook_OnPlayerTeleportPost);
 	}
 }
 

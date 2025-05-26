@@ -359,9 +359,9 @@ CBaseEntity* CSurfZonePlugin::CreateNormalZone(const Vector& vecMins, const Vect
 	}
 
 	SDKHOOK::HookEntity<SDKHook_StartTouch>(pZone, SURF::ZONE::HOOK::OnStartTouch);
-	SDKHOOK::HookEntity<SDKHook_StartTouchPost>(pZone, SURF::ZONE::HOOK::OnStartTouchPost);
-	SDKHOOK::HookEntity<SDKHook_TouchPost>(pZone, SURF::ZONE::HOOK::OnTouchPost);
-	SDKHOOK::HookEntity<SDKHook_EndTouchPost>(pZone, SURF::ZONE::HOOK::OnEndTouchPost);
+	SDKHOOK::HookEntity<SDKHook_StartTouch>(pZone, SURF::ZONE::HOOK::OnStartTouchPost);
+	SDKHOOK::HookEntity<SDKHook_Touch>(pZone, SURF::ZONE::HOOK::OnTouchPost);
+	SDKHOOK::HookEntity<SDKHook_EndTouch>(pZone, SURF::ZONE::HOOK::OnEndTouchPost);
 
 	pZone->SetName("surf_zone");
 
