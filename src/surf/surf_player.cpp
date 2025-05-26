@@ -63,7 +63,7 @@ std::vector<CPlayer*> CSurfPlayerManager::GetOnlinePlayers() const {
 	return players;
 }
 
-static bool Hook_OnPlayerTeleport(CBaseEntity* pSelf, const Vector* newPosition, const QAngle* newAngles, const Vector* newVelocity) {
+static bool Hook_OnPlayerTeleport(CBaseEntity* pSelf, Vector* newPosition, QAngle* newAngles, Vector* newVelocity) {
 	CSurfPlayer* pPlayer = SURF::GetPlayerManager()->ToPlayer((CBasePlayerPawn*)pSelf);
 	if (!pPlayer) {
 		return true;
@@ -74,7 +74,7 @@ static bool Hook_OnPlayerTeleport(CBaseEntity* pSelf, const Vector* newPosition,
 	return true;
 }
 
-static void Hook_OnPlayerTeleportPost(CBaseEntity* pSelf, const Vector* newPosition, const QAngle* newAngles, const Vector* newVelocity) {
+static void Hook_OnPlayerTeleportPost(CBaseEntity* pSelf, Vector* newPosition, QAngle* newAngles, Vector* newVelocity) {
 	auto hPlayerHandle = pSelf->GetRefEHandle();
 	UTIL::RequestFrame([hPlayerHandle] {
 		UTIL::RequestFrame([hPlayerHandle] {

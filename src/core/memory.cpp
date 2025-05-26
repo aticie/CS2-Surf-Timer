@@ -199,7 +199,7 @@ static void Hook_StartupServer(INetworkServerService* pThis, const GameSessionCo
 	entitySystem->AddListenerEntity(&g_EntityListener);
 
 	for (auto p = CCoreForward::m_pFirst; p; p = p->m_pNext) {
-		p->OnStartupServer(pThis, config);
+		p->OnStartupServer(pThis);
 	}
 
 	MEM::SDKCall(MEM::TRAMPOLINE::g_fnStartupServer, pThis, &config, a3, a4);

@@ -39,7 +39,7 @@ public:
 
 	virtual void OnLevelInit(const char* pMapName) {}
 
-	virtual void OnStartupServer(INetworkServerService* pServerService, const GameSessionConfiguration_t& config) {}
+	virtual void OnStartupServer(INetworkServerService* pServerService) {}
 
 	virtual void OnActivateServer(CNetworkGameServerBase* pGameServer) {}
 

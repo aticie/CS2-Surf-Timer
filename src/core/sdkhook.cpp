@@ -11,6 +11,8 @@ SDKHOOK_POSTBIND(SDKHook_EndTouch, SDKHOOK_PRE(HookTouch_t));
 SDKHOOK_POSTBIND(SDKHook_EndTouchPost, SDKHOOK_POST(HookTouch_t));
 SDKHOOK_POSTBIND(SDKHook_Teleport, SDKHOOK_PRE(HookTeleport_t));
 SDKHOOK_POSTBIND(SDKHook_TeleportPost, SDKHOOK_POST(HookTeleport_t));
+SDKHOOK_POSTBIND(SDKHook_Use, SDKHOOK_PRE(HookUse_t));
+SDKHOOK_POSTBIND(SDKHook_UsePost, SDKHOOK_POST(HookUse_t));
 
 static bool IsVMTHooked(void* pVtable, uint32_t iOffset) {
 	if (auto it = SDKHOOK::m_umVFuncHookMarks.find(pVtable); it != SDKHOOK::m_umVFuncHookMarks.end()) {
@@ -131,7 +133,7 @@ static void Hook_OnEndTouch(CBaseEntity* pEnt, void* pCallback, bool post) {
 }
 
 static void Hook_OnTeleport(CBaseEntity* pEnt, void* pCallback, bool post) {
-	HookTeleport_t pHook = [](CBaseEntity* pSelf, const Vector* newPosition, const QAngle* newAngles, const Vector* newVelocity) {
+	HookTeleport_t pHook = [](CBaseEntity* pSelf, Vector* newPosition, QAngle* newAngles, Vector* newVelocity) {
 		void* vtable = *(void**)pSelf;
 		HookTeleport_t pTrampoline = (HookTeleport_t)SDKHOOK::m_umSDKHookTrampolines[SDKHook_Teleport][vtable];
 		SDK_ASSERT(pTrampoline);
@@ -155,12 +157,47 @@ static void Hook_OnTeleport(CBaseEntity* pEnt, void* pCallback, bool post) {
 		}
 	};
 
-	static int iOffset = GAMEDATA::GetOffset("Teleport");
+	static int iOffset = GAMEDATA::GetOffset("CBaseEntity::Teleport");
 	void* pVtable = *(void**)pEnt;
 	AddHooks(SDKHOOK::m_umSDKHooks[post ? SDKHook_TeleportPost : SDKHook_Teleport][pVtable], pCallback);
 
 	if (!IsVMTHooked(pVtable, iOffset)) {
 		libmem::VmtHookEx(pEnt, iOffset, pHook, SDKHOOK::m_umSDKHookTrampolines[SDKHook_Teleport][pVtable]);
+		SDKHOOK::m_umVFuncHookMarks[pVtable].insert(iOffset);
+	}
+}
+
+static void Hook_OnUse(CBaseEntity* pEnt, void* pCallback, bool post) {
+	HookUse_t pHook = [](CBaseEntity* pSelf, EntityInputData_t* pInput) {
+		void* vtable = *(void**)pSelf;
+		HookUse_t pTrampoline = (HookUse_t)SDKHOOK::m_umSDKHookTrampolines[SDKHook_Use][vtable];
+		SDK_ASSERT(pTrampoline);
+
+		bool block = false;
+		const auto& preHooks = SDKHOOK::m_umSDKHooks[SDKHook_Use][vtable];
+		for (const auto& pFnPre : preHooks) {
+			if (!reinterpret_cast<SDKHOOK_PRE(HookUse_t)*>(pFnPre)(pSelf, pInput)) {
+				block = true;
+			}
+		}
+		if (block) {
+			return;
+		}
+
+		pTrampoline(pSelf, pInput);
+
+		const auto& postHooks = SDKHOOK::m_umSDKHooks[SDKHook_UsePost][vtable];
+		for (const auto& pFnPost : postHooks) {
+			reinterpret_cast<SDKHOOK_POST(HookUse_t)*>(pFnPost)(pSelf, pInput);
+		}
+	};
+
+	static int iOffset = GAMEDATA::GetOffset("CBaseEntity::Use");
+	void* pVtable = *(void**)pEnt;
+	AddHooks(SDKHOOK::m_umSDKHooks[post ? SDKHook_UsePost : SDKHook_Use][pVtable], pCallback);
+
+	if (!IsVMTHooked(pVtable, iOffset)) {
+		libmem::VmtHookEx(pEnt, iOffset, pHook, SDKHOOK::m_umSDKHookTrampolines[SDKHook_Use][pVtable]);
 		SDKHOOK::m_umVFuncHookMarks[pVtable].insert(iOffset);
 	}
 }
@@ -193,6 +230,12 @@ bool SDKHOOK::HookEntity(CBaseEntity* pEnt, typename SDKHookBindings<T>::Type pF
 			break;
 		case SDKHook_TeleportPost:
 			::Hook_OnTeleport(pEnt, pBind, true);
+			break;
+		case SDKHook_Use:
+			::Hook_OnUse(pEnt, pBind, false);
+			break;
+		case SDKHook_UsePost:
+			::Hook_OnUse(pEnt, pBind, true);
 			break;
 		default:
 			return false;

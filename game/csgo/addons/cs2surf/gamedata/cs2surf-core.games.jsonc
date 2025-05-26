@@ -13,10 +13,6 @@
 			"windows": 162,
 			"linux": 161
 		},
-		"Teleport": {
-			"windows": 157,
-			"linux": 156
-		},
 		// 2 functions after one with "targethealthfrac"
 		"CollisionRulesChanged": {
 			"windows": 179,
@@ -48,6 +44,10 @@
 			"windows": 624,
 			"linux": 640
 		},
+		"CBaseEntity::Use": {
+			"windows": 140,
+			"linux": 139
+		},
 		"CBaseEntity::StartTouch": {
 			"windows": 143,
 			"linux": 142
@@ -59,6 +59,10 @@
 		"CBaseEntity::EndTouch": {
 			"windows": 145,
 			"linux": 144
+		},
+		"CBaseEntity::Teleport": {
+			"windows": 157,
+			"linux": 156
 		}
 	},
 	"Addresses": {

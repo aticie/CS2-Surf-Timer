@@ -128,7 +128,7 @@ public:
 class CSurfReplayPlugin : CSurfForward, CMovementForward, CCoreForward {
 private:
 	virtual void OnPluginStart() override;
-	virtual void OnStartupServer(INetworkServerService* pServerService, const GameSessionConfiguration_t& config) override;
+	virtual void OnActivateServer(CNetworkGameServerBase* pGameServer) override;
 	virtual void OnClientPutInServer(ISource2GameClients* pClient, CPlayerSlot slot, char const* pszName, int type, uint64 xuid) override;
 	virtual void OnEntitySpawned(CEntityInstance* pEntity) override;
 
@@ -169,6 +169,7 @@ namespace SURF {
 	namespace REPLAY {
 		namespace HOOK {
 			bool OnBotTrigger(CBaseEntity* pSelf, CBaseEntity* pOther);
+			bool OnBotUse(CBaseEntity* pSelf, EntityInputData_t* pInput);
 		} // namespace HOOK
 	} // namespace REPLAY
 } // namespace SURF

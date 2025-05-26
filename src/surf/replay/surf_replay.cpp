@@ -20,7 +20,7 @@ void CSurfReplayPlugin::OnPluginStart() {
 	HookEvents();
 }
 
-void CSurfReplayPlugin::OnStartupServer(INetworkServerService* pServerService, const GameSessionConfiguration_t& config) {
+void CSurfReplayPlugin::OnActivateServer(CNetworkGameServerBase* pGameServer) {
 	m_aTrackReplays = {};
 	m_aStageReplays = {};
 	m_iLatestBot = -1;
@@ -38,7 +38,7 @@ void CSurfReplayPlugin::OnEntitySpawned(CEntityInstance* pEntity) {
 		SDKHOOK::HookEntity<SDKHookType::SDKHook_StartTouch>((CBaseEntity*)pEntity, SURF::REPLAY::HOOK::OnBotTrigger);
 		SDKHOOK::HookEntity<SDKHookType::SDKHook_EndTouch>((CBaseEntity*)pEntity, SURF::REPLAY::HOOK::OnBotTrigger);
 		SDKHOOK::HookEntity<SDKHookType::SDKHook_Touch>((CBaseEntity*)pEntity, SURF::REPLAY::HOOK::OnBotTrigger);
-		// SDKHOOK::HookEntity<SDKHookType::SDKHook_Use>((CBaseEntity*)pEntity, SURF::REPLAY::HOOK::HookBotTrigger);
+		SDKHOOK::HookEntity<SDKHookType::SDKHook_Use>((CBaseEntity*)pEntity, SURF::REPLAY::HOOK::OnBotUse);
 	}
 }
 

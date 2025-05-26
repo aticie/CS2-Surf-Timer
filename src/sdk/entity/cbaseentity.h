@@ -99,6 +99,15 @@ public:
 	SCHEMA_FIELD(float, m_vecZ);
 };
 
+class CNetworkViewOffsetVector {
+public:
+	DECLARE_SCHEMA_STRUCT(CNetworkViewOffsetVector);
+
+	SCHEMA_FIELD(float, m_vecX);
+	SCHEMA_FIELD(float, m_vecY);
+	SCHEMA_FIELD(float, m_vecZ);
+};
+
 class CGameSceneNode {
 public:
 	DECLARE_SCHEMA_CLASS(CGameSceneNode);
@@ -213,22 +222,22 @@ public:
 	}
 
 	void StartTouch(CBaseEntity* pOther) {
-		static auto iOffset = GAMEDATA::GetOffset("StartTouch");
+		static auto iOffset = GAMEDATA::GetOffset("CBaseEntity::StartTouch");
 		CALL_VIRTUAL(bool, iOffset, this, pOther);
 	}
 
 	void Touch(CBaseEntity* pOther) {
-		static auto iOffset = GAMEDATA::GetOffset("Touch");
+		static auto iOffset = GAMEDATA::GetOffset("CBaseEntity::Touch");
 		CALL_VIRTUAL(bool, iOffset, this, pOther);
 	}
 
 	void EndTouch(CBaseEntity* pOther) {
-		static auto iOffset = GAMEDATA::GetOffset("EndTouch");
+		static auto iOffset = GAMEDATA::GetOffset("CBaseEntity::EndTouch");
 		CALL_VIRTUAL(bool, iOffset, this, pOther);
 	}
 
 	void Teleport(const Vector* newPosition, const QAngle* newAngles, const Vector* newVelocity) {
-		static auto iOffset = GAMEDATA::GetOffset("Teleport");
+		static auto iOffset = GAMEDATA::GetOffset("CBaseEntity::Teleport");
 		CALL_VIRTUAL(bool, iOffset, this, newPosition, newAngles, newVelocity);
 	}
 
@@ -247,13 +256,11 @@ public:
 	const QAngle& GetAbsAngles();
 };
 
-class CNetworkViewOffsetVector {
-public:
-	DECLARE_SCHEMA_STRUCT(CNetworkViewOffsetVector);
-
-	SCHEMA_FIELD(float, m_vecX);
-	SCHEMA_FIELD(float, m_vecY);
-	SCHEMA_FIELD(float, m_vecZ);
+struct EntityInputData_t {
+	CBaseEntity* pActivator;
+	CBaseEntity* pCaller;
+	variant_t value;
+	int nOutputID;
 };
 
 class CBaseModelEntity : public CBaseEntity {
