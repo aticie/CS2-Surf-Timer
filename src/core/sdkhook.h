@@ -16,12 +16,12 @@ using HookTeleport_t = void (*)(CBaseEntity* pSelf, Vector* newPosition, QAngle*
 using HookUse_t = void (*)(CBaseEntity* pSelf, EntityInputData_t* pInput);
 
 enum SDKHookType {
-	SDKHook_StartTouch,
+	SDKHook_StartTouch = 0,
 	SDKHook_Touch,
 	SDKHook_EndTouch,
 	SDKHook_Teleport,
 	SDKHook_Use,
-	MAX_TYPE
+	SDKHook_MAX_TYPE
 };
 
 template<SDKHookType T>
@@ -44,8 +44,14 @@ SDKHOOK_BIND(SDKHook_Use, HookUse_t, "CBaseEntity::Use");
 
 namespace SDKHOOK {
 	template<SDKHookType T>
-	bool HookEntity(CBaseEntity* pEnt, typename SDKHookBindings<T>::Pre pCallback);
+	bool HookEntity(CBaseEntity* pEnt, typename SDKHookBindings<T>::Pre pListener);
 
 	template<SDKHookType T>
-	bool HookEntity(CBaseEntity* pEnt, typename SDKHookBindings<T>::Post pCallback);
+	bool HookEntity(CBaseEntity* pEnt, typename SDKHookBindings<T>::Post pListener);
+
+	template<SDKHookType T>
+	bool UnhookEntity(CBaseEntity* pEnt, typename SDKHookBindings<T>::Pre pListener);
+
+	template<SDKHookType T>
+	bool UnhookEntity(CBaseEntity* pEnt, typename SDKHookBindings<T>::Post pListener);
 } // namespace SDKHOOK
