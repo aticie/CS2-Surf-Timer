@@ -61,7 +61,10 @@ target_link_libraries(${PROJECT_NAME} PRIVATE ${SURFTIMER_LIBS})
 
 target_precompile_headers(${PROJECT_NAME} PRIVATE "${SURFTIMER_SRC}/pch.h")
 
-set_target_properties(${PROJECT_NAME} PROPERTIES PREFIX "")
+set_target_properties(${PROJECT_NAME} PROPERTIES PREFIX ""
+	INSTALL_RPATH "$ORIGIN/../lib"
+	BUILD_WITH_INSTALL_RPATH TRUE
+)
 
 set(OUT_DIR "" CACHE PATH "SurfTimer binary directory for post-build file copy")
 
