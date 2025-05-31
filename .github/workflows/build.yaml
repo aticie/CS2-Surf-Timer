@@ -46,7 +46,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: cs2surf-win
-          path: ./build/package
+          path: ./build/cs2surf.dll
 
   build-linux:
     name: Linux
@@ -74,4 +74,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: cs2surf-linux
-          path: ./build/package
+          path: ./build/cs2surf.so
