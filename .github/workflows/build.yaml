@@ -42,11 +42,11 @@ jobs:
           cmake -G Ninja -B build -S . -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER="cl" -DCMAKE_CXX_COMPILER="cl"
           cmake --build build
 
-      # - name: Archive build
-      #   uses: actions/upload-artifact@v4
-      #   with:
-      #     name: cs2surf-win
-      #     path: ./build/package
+      - name: Archive build
+        uses: actions/upload-artifact@v4
+        with:
+          name: cs2surf-win
+          path: ./build/package
 
   build-linux:
     name: Linux
@@ -70,8 +70,8 @@ jobs:
           cmake -G Ninja -B build -S . -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER="clang" -DCMAKE_CXX_COMPILER="clang++"
           cmake --build build
 
-      # - name: Archive build
-      #   uses: actions/upload-artifact@v4
-      #   with:
-      #     name: cs2surf-linux
-      #     path: ./build/package
+      - name: Archive build
+        uses: actions/upload-artifact@v4
+        with:
+          name: cs2surf-linux
+          path: ./build/package
